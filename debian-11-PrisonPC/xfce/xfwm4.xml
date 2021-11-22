@@ -6,30 +6,20 @@
 <channel name="xfwm4" version="1.0">
   <property name="general" type="empty">
 
-    <!--
-        Staff may observe an inmate at any time.
-        We want to mitigate "boss mode"-like capabilities.
-        An obvious example of this is having homework on workspace 1, and
-        child pornography on workspace 2.
-        Lock the number of workspaces to be exactly 1.
-        https://en.wikipedia.org/wiki/Boss_key
-
-        Interestingly, this still exists in a website prisons allow:
-            https://legalaidact.org.au/
-        has a "quick escape" link in the top-right to https://google.com/.
-    -->
+    <!-- Lock the number of workspaces to be exactly 1, to mitigate
+         https://en.wikipedia.org/wiki/Boss_key#Alternatives
+         A modern example is the "quick escape" button on
+         https://legalaidact.org.au/ -->
     <property name="workspace_count" type="int" value="1" unlocked="root"/>
     <property name="workspace_names" type="array" unlocked="root">
       <value type="string" value="Workspace"/>
     </property>
 
-    <!--
-        When watching football, cricket, or golf, there are long sideways pans.
-        During these, video tearing is VERY noticable.
-        As at Debian 8, use_compositing=false DRAMATICALLY reduced tearing.
-        FIXME: does this issue still occur in Debian 11?
-        https://alloc.cyber.com.au/task/task.php?taskID=30108
-    -->
+    <!-- When watching football, cricket, or golf, there are long sideways pans.
+         During these, video tearing is VERY noticable.
+         As at Debian 8, use_compositing=false DRAMATICALLY reduced tearing.
+         FIXME: does this issue still occur in Debian 11?
+         https://alloc.cyber.com.au/task/task.php?taskID=30108 -->
     <property name="use_compositing" type="bool" value="true"/>
 
     <!-- Hide the "rollup" feature.
@@ -40,13 +30,13 @@
     <property name="button_layout" type="string" value="O|HMC"/>
     <property name="mousewheel_rollup" type="bool" value="false"/>
 
-    <!--
-        This is a VERY old optimization to avoid incremental
-        re-rendering while moving/resizing a window.
-        We had this enabled in Debian 9 mainly as a "just in case" for VNC over slow links.
-        I don't think think it's worth bothering with this anymore.
-        <property name="box_move" type="bool" value="true"/>
-        <property name="box_resize" type="bool" value="true"/>
+    <!-- This is a VERY old optimization to avoid incremental
+         re-rendering while moving/resizing a window.
+         We had this enabled in Debian 9 mainly as a "just in case" for VNC over slow links.
+         I don't think think it's worth bothering with this anymore.
+         <property name="box_move" type="bool" value="true"/>
+         <property name="box_resize" type="bool" value="true"/>
     -->
+
   </property>
 </channel>
