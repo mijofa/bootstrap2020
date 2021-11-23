@@ -5,7 +5,6 @@
     <property name="single-workspace-mode" type="bool" value="true" />
     <property name="single-workspace-number" type="int" value="0" />
     <property name="screen0" type="empty">
-      <!-- in VM, show plain default background color -->
       <property name="monitor0" type="empty">
         <property name="workspace0" type="empty">
           <property name="color-style" type="int" value="0"/>
