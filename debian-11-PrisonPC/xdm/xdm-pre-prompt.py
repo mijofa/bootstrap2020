@@ -42,3 +42,13 @@ subprocess.check_call([
     *{f'--setenv={key}={os.environ[key]}'
       for key in {'DISPLAY', 'XAUTHORITY'}},
     'acceptable-use-policy'])
+
+
+subprocess.check_call([
+    'systemd-run',
+    '--unit=x11vnc.service',
+    '--property=PartOf=xdm.service',
+    '--property=Type=forking',  # ???
+    *{f'--setenv={key}={os.environ[key]}'
+      for key in {'DISPLAY', 'XAUTHORITY'}},
+    'x11vnc', '-rc', '/etc/x11vnc.conf'])
