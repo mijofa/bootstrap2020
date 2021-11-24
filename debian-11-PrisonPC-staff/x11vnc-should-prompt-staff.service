@@ -2,4 +2,4 @@
 # We do a drop-in here so the staff SOE does not need to
 # copy-paste-edit ALL of x11vnc.conf just to change 2 settings.
 [Service]
-Environment=X11VNC_EXTRA_ARGS=-accept popup -gone popup
+Environment=X11VNC_EXTRA_ARGS="-accept popup -gone popup"
