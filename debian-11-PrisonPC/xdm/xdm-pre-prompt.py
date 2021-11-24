@@ -48,7 +48,9 @@ subprocess.check_call([
     'systemd-run',
     '--unit=x11vnc.service',
     '--property=PartOf=xdm.service',
-    '--property=Type=forking',  # ???
+    # x11vnc double-forks, because
+    # we put "bg" into x11vnc.conf...
+    '--property=Type=forking',
     *{f'--setenv={key}={os.environ[key]}'
       for key in {'DISPLAY', 'XAUTHORITY'}},
     'x11vnc', '-rc', '/etc/x11vnc.conf', '$X11VNC_EXTRA_ARGS'])
