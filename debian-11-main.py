@@ -546,8 +546,8 @@ if args.boot_test:
                 f'hostname={args.template}.{domain}',
                 f'dnssearch={domain}',
                 f'hostfwd=tcp::{args.host_port_for_boot_test_ssh}-:22',
-                f'hostfwd=tcp::{args.host_port_for_boot_test_vnc}-:5900'
-                if template_wants_PrisonPC else '',
+                *([f'hostfwd=tcp::{args.host_port_for_boot_test_vnc}-:5900']
+                  if template_wants_PrisonPC else []),
                 *([f'smb={testdir}'] if have_smbd else []),
                 *([f'tftp={testdir}', 'bootfile=pxelinux.0']
                   if args.netboot_only else []),
