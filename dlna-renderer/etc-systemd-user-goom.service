@@ -1,0 +1,15 @@
+[Unit]
+Description=Audio visualiser using Gstreamer's goom
+After=pulseaudio.service
+PartOf=default.target
+
+[Service]
+# The goom visualiser doesn't automatically determine the display resolution from the waylandsink window.
+# So I need to get that manually otherwise it will scale badly and have unnecessary black borders.
+ExecStartPre=/bin/sh -c 'systemctl --user set-environment GST_VID_CAP=$(weston-info | sed -En "s|^.*logical_width: (.*), logical_height: (.*)|video/x-raw,width=\1,height=\2|p")'
+ExecStartPre=/bin/sh -c 'systemctl --user set-environment DEFAULT_SINK=$(pactl info | sed -En "s/Default Sink: (.*)/\1/p")'
+ExecStart=/usr/bin/gst-launch-1.0 pulsesrc device="${DEFAULT_SINK}.monitor" ! audioconvert ! audiokaraoke ! goom ! $GST_VID_CAP ! videoconvert ! waylandsink fullscreen=true
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
