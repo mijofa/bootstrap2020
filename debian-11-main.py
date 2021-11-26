@@ -84,6 +84,7 @@ parser.add_argument('--template', default='main',
                              'desktop-staff',
                              'desktop-staff-amc',
                              'desktop-staff-hcc',
+                             'dlna-renderer'
                              ),
                     help=(
                         'main: small CLI image; '
@@ -560,6 +561,23 @@ with tempfile.TemporaryDirectory() as td:
            if args.template.startswith('desktop-inmate') else []),
          *(['--verbose', '--logfile', destdir / 'mmdebstrap.log']
            if args.reproducible else []),
+         *(['--include=weston',
+            '--include=gmediarender',  # Likely to be replaced by self-compiled version, but this will help handle dependencies
+            '--include=gstreamer1.0-libav',  # Can't decode most media without this
+            '--include=gstreamer1.0-plugins-bad',  # Needed for 'waylandsink' video output
+            '--include=gstreamer1.0-plugins-good',  # Wanted for 'goom' audio visualiser
+            '--include=pulseaudio gstreamer1.0-pulseaudio',  # Using pulseaudio because it's easier to plug into an audio visualiser
+            '--include=gstreamer1.0-tools',  # Using gst-launch for the audio visualiser
+            '--include=snapclient',  # Using this as the whole house audio solution
+            '--include=avahi-daemon',  # Dependency of snapclient missing in control file
+            '--customize-hook=sed -i "/module-role-cork/ s/^load/#load/" $1/etc/pulse/default.pa',  # Disable role corking so we can enable it properly later
+            '--customize-hook=systemctl disable --quiet --system --root $1 snapclient.service',  # I want it running as the graphical user with pulseaudio
+            '--customize-hook=systemctl disable --quiet --system --root $1 getty@tty1.service',  # Leave this tty for weston
+            '--customize-hook=systemctl enable --quiet --system --root $1 weston.service',  # FIXME: Make this a user unit or get a real display manager
+            '--customize-hook=systemctl enable --quiet --user --global --root $1 snapclient.service gmediarender.service goom.service',  # Should maybe only enable these for frontenduser?
+            '--customize-hook=chroot $1 adduser frontenduser --gecos frontend-user --disabled-password --quiet',
+            f'--essential-hook=tar-in {create_tarball("dlna-renderer")} /']
+           if args.template == 'dlna-renderer' else []),
          'bullseye',
          destdir / 'filesystem.squashfs',
          'debian-11.sources',
@@ -631,6 +649,9 @@ def maybe_tvserver_ext2(testdir: pathlib.Path) -> list:
         ['--drive', f'file={tvserver_ext2_path},format=raw,media=disk,if=virtio',
          '--boot', 'order=n'])  # don't try to boot off the dummy disk
 
+if args.template == 'dlna-renderer':
+    # This template uses Wayland instead of X11, so all other wants_GUI things aren't valid, but we still want the VM layer to do GUI things
+    template_wants_GUI = True
 
 if args.boot_test:
     # PrisonPC SOEs are hard-coded to check their IP address.
