@@ -86,6 +86,7 @@ parser.add_argument('--template', default='main',
                              'desktop-staff',
                              'desktop-staff-amc',
                              'desktop-staff-hcc',
+                             'jellyfin-media-player'
                              ),
                     help=(
                         'main: small CLI image; '
@@ -578,6 +579,63 @@ with tempfile.TemporaryDirectory() as td:
            if args.template.startswith('desktop-inmate') else []),
          *(['--verbose', '--logfile', destdir / 'mmdebstrap.log']
            if args.reproducible else []),
+         *(['--include=phoc',  # Let's try Wayland instead of X11  NOTE: jellyfin-media-player has issues with sway, mako-notifier can't work with weston
+            # FIXME: Do some phoc config to hide cursor and ensure XWayland is disabled: https://github.com/agx/phoc/blob/master/src/phoc.ini.example
+
+            # copied from wants_GUI section above because while this does want a GUI, it's not an X11 GUI so we can't use that entire section
+            '--include=vdpau-driver-all'  # VA/AMD, free
+            '    mesa-vulkan-drivers'     # Intel/AMD/Nvidia, free
+            '    va-driver-all'           # Intel/AMD/Nvidia, free
+            '    i965-va-driver-shaders'  # Intel, non-free, 2013-2017
+            '    intel-media-va-driver-non-free',  # Intel, non-free, 2017+
+            '--include=ir-keytable',   # infrared TV remote control
+
+            # Having hardware support issues, let's just throw some firmware in and see if it helps
+            # UPDATE: It did not, but nothing got worse either
+            '--include=firmware-linux-free firmware-linux firmware-linux-nonfree',  # Lots of generic firmware stuff, normally helps
+            '--include=firmware-amd-graphics firmware-intel-sound',  # I don't think I'm using any of this hardware, but shouldn't hurt
+            # NOTE: firmware-ivtv has an EULA that needs to be agreed to, rather than fixing that I'm just leaving it out
+            '--include=firmware-samsung',  # I don't understand how codec firmwares work, but given this is a media machine I might as well include them
+
+            # I hoped this would improve support on 'beylix' in my room. But it only got worse
+            # '--include=v86d',
+            # '--customize-hook=echo "blacklist gma500_gfx" >$1/etc/modprobe.d/disable-gma500.conf',
+            # '--customize-hook=echo "options uvesafb mode_option=1280x1024-32" >$1/etc/modprobe.d/uvesafb.conf',
+            # '--customize-hook=echo "uvesafb" >>$1/etc/modules-load.d/uvesafb.conf',
+
+            '--include=jellyfin-media-player',  # The whole point of this thing
+            '--include=python3-plyvel python3-dnspython',  # Needed for the Python snippet that pre-generates the jellyfin-media-player config
+            '--include=qtwayland5',  # Wayland support for jellyfin-media-player
+
+            '--include=pulseaudio',  # Pulseaudio's role-corking makes pausing the music when movie starts a lot easier, pipewire does not have this feature
+            # FIXME: Just change the PA config to what I actually want rather than using pacmd in override.conf
+            '--customize-hook=sed -i "/module-role-cork/ s/^load/#load/" $1/etc/pulse/default.pa',  # Disable role corking because the default config sucks, we enable it later in a systemd override.conf
+
+            '--include=snapclient',  # Using this as the whole house audio solution
+            '--include=avahi-daemon',  # Dependency of snapclient missing in control file
+
+            # keybinds.py
+            # A daemon that handles system keybindings such as volume +/-
+            '--include=python3-evdev',  # The library I use to get the keypresses
+            '--include=python3-gi gir1.2-notify-0.7 gir1.2-gtk-3.0',  # Libraries for notifyd & gtk icons
+            '--include=mako-notifier',  # Notification daemon that supports Wayland
+
+            '--include=grim',  # Wayland screenshot utility, not really using it yet but would like to
+
+            # Create the actual user that the GUI runs as
+            '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
+            '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev input devices
+
+            # Make snapclient run as a user unit, not a system unit
+            '--customize-hook=systemctl disable --quiet --system --root $1 snapclient.service',
+            '--customize-hook=systemctl enable --quiet --user --global --root $1 snapclient.service',
+
+            # Enable the various systemd units used
+            '--customize-hook=systemctl enable --quiet --system --root $1 phoc.service',
+            '--customize-hook=systemctl enable --quiet --user --global --root $1 jellyfinmediaplayer.service keybinds.service volnotifier.service',  # Should maybe only enable these for jellyfinuser?
+
+            f'--essential-hook=tar-in {create_tarball("jellyfin-media-player")} /']
+           if args.template == 'jellyfin-media-player' else []),
          'bullseye',
          destdir / 'filesystem.squashfs',
          'debian-11.sources',
@@ -587,6 +645,8 @@ with tempfile.TemporaryDirectory() as td:
            if args.template == 'datasafe3' else []),
          *([f'deb [signed-by={pathlib.Path.cwd()}/debian-11-PrisonPC.packages/PrisonPC-archive-pubkey.asc] https://apt.cyber.com.au/PrisonPC bullseye desktop']  # noqa: E501
            if template_wants_PrisonPC_or_tvserver else []),
+         *([f'deb [signed-by={pathlib.Path.cwd()}/jellyfin-media-player/mijofa-archive-pubkey.asc] https://github.com/mijofa/mijofa.github.io/releases/download/apt-bullseye-amd64 ./']
+           if args.template == 'jellyfin-media-player' else []),
          ])
 
 subprocess.check_call(
@@ -655,6 +715,9 @@ def maybe_tvserver_ext2(testdir: pathlib.Path) -> list:
         ['--drive', f'file={tvserver_ext2_path},format=raw,media=disk,if=virtio',
          '--boot', 'order=n'])  # don't try to boot off the dummy disk
 
+if args.template == 'jellyfin-media-player':
+    # This template uses Wayland instead of X11, so all other wants_GUI things aren't valid, but we still want the VM layer to do GUI things
+    template_wants_GUI = True
 
 if args.boot_test:
     # PrisonPC SOEs are hard-coded to check their IP address.
@@ -772,6 +835,7 @@ if args.boot_test:
               ['--device', 'virtio-vga']
               if not args.opengl_for_boot_test_ssh else
               ['--device', 'virtio-vga-gl', '--display', 'gtk,gl=on']),
+            '-usb', '-device', 'usb-host,vendorid=0x0471,productid=0x0815',
             '--net', 'nic,model=virtio',
             '--net', ','.join([
                 'user',
