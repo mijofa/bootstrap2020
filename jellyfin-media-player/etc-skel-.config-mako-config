@@ -1,0 +1,13 @@
+# Documentation: https://manpages.debian.org/bullseye/mako-notifier/mako.5.en.html
+
+# Jellyfin Media Player is fullscreen by default,
+# Mako uses the 'top' layer by default which is underneath fullscreen apps.
+# So just set the layer Mako uses to by the 'overlay' which will let the notifications actually be seen.
+layer=overlay
+
+# Disable actions just because we have no input mechanism to trigger them anyway
+actions=0
+
+# Disable markup because we don't use it anyway,
+# and in generally I usually assume markup like things might introduce security issues
+markup=0
