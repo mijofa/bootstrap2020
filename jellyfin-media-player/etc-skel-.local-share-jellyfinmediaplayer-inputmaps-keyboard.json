@@ -1,0 +1,35 @@
+{
+  "name": "Keyboard Generic",
+  "idmatcher": "Keyboard.*",
+  "mapping":
+  {
+    // There's a bunch of play buttons and pause buttons,
+    // I want all of them to just trigger the toggling rather than one or the other
+    "Toggle Media Play\\/Pause": "play_pause",
+    "Pause": "play_pause",
+    "Media Pause": "play_pause",
+    "Media Play": "play_pause",
+
+    "Media Stop": "stop",
+    "Back": "back",
+
+    // I believe these are handled in jellyfin-web
+    "Media Rewind": "rewind",
+    "Media Fast Forward": "fastforward",
+    // This actually defaults to prev/next *chapter*,
+    // I changed it for consistency with the onscreen buttons
+    "Media Previous": "previoustrack",
+    "Media Next": "nexttrack",
+
+    // These are triggered by keybinds.py as jellyfin-media-player doesn't actually notice these keys being pressed anyway
+    "KEY_MENU": "menu",
+    "KEY_HELP": "info",
+    "KEY_EPG": "guide",
+    "KEY_TV": "recordedtv",
+    "KEY_RECORD": "record",
+    "KEY_ZOOM": "changezoom",
+    "KEY_SUBTITLE": "changesubtitletrack",
+    "KEY_DASHBOARD": "changesubtitletrack",
+    "KEY_FAVORITES": "favorites"
+  }
+}
