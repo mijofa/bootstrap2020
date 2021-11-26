@@ -1,0 +1,13 @@
+{
+    "AutoLaunchProtocolsFromOrigins": [
+        {
+            "protocol": "rtp",
+            "allowed_origins": [
+                // FIXME: Should we add more of the PrisonPC server's hostnames?
+                "prisonpc",
+                "prisonpc.lan"
+            ]
+        }
+    ]
+}
+

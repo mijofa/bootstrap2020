@@ -1,0 +1,20 @@
+{
+    "AutoLaunchProtocolsFromOrigins": [
+        {
+            "protocol": "vnc",
+            "allowed_origins": [
+                // FIXME: Should we add more of the PrisonPC server's hostnames?
+                "ppcadm",
+                "ppcadm.lan"
+            ]
+        },{
+            "protocol": "sftp",
+            "allowed_origins": [
+                // FIXME: Should we add more of the PrisonPC server's hostnames?
+                "ppcadm",
+                "ppcadm.lan"
+            ]
+        }
+    ]
+}
+
