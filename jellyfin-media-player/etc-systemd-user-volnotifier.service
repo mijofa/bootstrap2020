@@ -1,0 +1,14 @@
+[Unit]
+Description=Notification handler for PulseAudio volume changes
+After=pulseaudio.service
+PartOf=graphical-session.target
+
+[Service]
+# Python3 defaults to quite a large buffer for stdout/stderr.
+# This makes the journal significantly less useful for debugging because the log messages don't appear immediately.
+Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
+ExecStart=/usr/local/bin/volnotifier.py
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target
