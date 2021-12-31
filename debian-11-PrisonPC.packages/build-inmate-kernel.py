@@ -79,6 +79,7 @@ conflicting sources.
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--menuconfig', action='store_true')
+parser.add_argument('--snapshot', action='store_true')
 parser.add_argument('--upload', action='store_true')
 parser.add_argument(
     '--dsc-url',
@@ -161,10 +162,13 @@ with tempfile.TemporaryDirectory() as td:
          '--include=python3',
          '--customize-hook=copy-in build-inmate-kernel.ini /',
          '--customize-hook=copy-in build-inmate-kernel-inner.py /',
-         f'--customize-hook=chroot $1 python3 build-inmate-kernel-inner.py {"--menuconfig" if args.menuconfig else ""} || chroot $1 bash',
+         f'--customize-hook=chroot $1 python3 build-inmate-kernel-inner.py {"--menuconfig" if args.menuconfig else ""} {"--snapshot" if args.snapshot else ""} || chroot $1 bash',
+
+         f'--customize-hook=sync-out /X .'  # special case debugging
+         if args.snapshot else
 
          # Copy the built kernel back out.
-         f'--customize-hook=sync-out /X {td}',
+         f'--customize-hook=sync-out /X {td}',  # normal case
 
          'bullseye',
          '/dev/null',

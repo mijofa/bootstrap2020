@@ -10,6 +10,7 @@ import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--menuconfig', action='store_true')
+parser.add_argument('--snapshot', action='store_true')
 args = parser.parse_args()
 
 processors_online = int(subprocess.check_output(['getconf', '_NPROCESSORS_ONLN']).strip())
@@ -124,6 +125,18 @@ if enabled_naughty_words := {
         if any(s in word
                for s in naughty_substrings)}:
     raise RuntimeError('ERROR: VERY naughty module(s) found!', enabled_naughty_words)
+
+
+# Just take a quick copy of the final .config so we can build a chain of them quickly during a big upgrade jump.
+# This avoids having to wait ~500s for each intermediary .deb to compile.
+if args.snapshot:
+    version = pathlib.Path.cwd().name.replace('linux-', '')
+    destdir = pathlib.Path('/X')
+    destdir.mkdir(parents=True, exist_ok=True)
+    (pathlib.Path.cwd() / '.config').rename(
+        destdir / f'build-inmate-kernel.config-inmate.{version}')
+    exit()
+
 
 ############################################################
 # Do the actual compile at last.
