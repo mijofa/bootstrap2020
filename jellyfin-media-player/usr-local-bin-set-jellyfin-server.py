@@ -1,0 +1,104 @@
+#!/usr/bin/python3
+"""Preload jellyfin-media-player with a Jellyfin server config."""
+import contextlib
+import json
+import os
+import pathlib
+import socket
+import sys
+import urllib.parse
+import urllib.request
+
+import dns.resolver
+import plyvel
+
+
+# These are the keys in local storage that we want to update
+# NOTE: I don't know why there's the '_' before hand, or the '\x00\x01',
+#       but removing them didn't work, so meh.
+CREDENTIALS_KEY = b'_file://\x00\x01jellyfin_credentials'
+AUTOLOGIN_KEY = b'_file://\x00\x01enableAutoLogin'
+
+
+def guess_base_url():
+    """
+    Query DNS for probably Jellyfin server.
+
+    FIXME: Does Jellyfin already use avahi? Can we use that instead of SRV records?
+    """
+    hostname = socket.gethostname()
+    fqdn = socket.getfqdn()
+
+    if '.' in hostname and '.' not in fqdn:
+        # FIXME: They the fuck are these backwards sometimes?!?
+        #        I can vaguely understand hostname sometimes including the fqdn,
+        #        but why is the fqdn missing the domain?
+        fqdn = socket.gethostname()
+        hostname = socket.getfqdn()
+
+    assert fqdn.startswith(hostname), "FQDN does not start with hostname"
+    domain = fqdn[len(hostname) + 1:]  # '+ 1' is for the '.'
+
+    # Get all SRV records and sort them by weight,
+    # then grab only the first one
+    # FIXME: Try them in order until 1 works?
+    # FIXME: Is this sorted in the right order?
+    srv_records = list(dns.resolver.resolve(f'_jellyfin._tcp.{domain}', 'SRV'))
+    srv_records.sort(key=lambda i: i.weight)
+
+    jf_port = srv_records[0].port
+    jf_target = str(srv_records[0].target).rstrip('.')
+    # If the port is a usual https port, then do https, otherwise http
+    # NOTE: Jellyfin defaults to 8920 for https
+    if jf_port in (443, 8920):
+        jf_proto = 'https'
+    else:
+        jf_proto = 'http'
+
+    return f"{jf_proto}://{jf_target}:{jf_port}"
+
+
+# The base URL of the Jellyfin server we're working with
+if not len(sys.argv) >= 2:
+    base_url = guess_base_url()
+    if base_url:
+        print("No base URL specified, using:", base_url)
+    else:
+        raise Exception("No base URL specified, and could not automatically determine via SRV records.")
+else:
+    base_url = sys.argv[1]
+
+# Query the info from the Jellyfin server (similar to how the Chromecast does)
+with urllib.request.urlopen(urllib.parse.urljoin(base_url, "System/Info/Public")) as server_query:
+    server_info = json.load(server_query)
+
+# Massage that data into what's needed for the localstorage key
+jellyfin_credentials = {
+    "Servers": [
+        {
+            "ManualAddress": base_url,
+            "Id": server_info['Id'],
+            # NOTE: Only ManualAddress & ID are *required*, but I've got the rest, so might as well.
+            "Name": server_info['ServerName'],
+            "LocalAddress": server_info['LocalAddress'],
+        },
+    ],
+}
+
+# Find or create the local storage database
+local_storage_path = pathlib.Path("~/.local/share/Jellyfin Media Player/QtWebEngine/Default/Local Storage").expanduser()
+if not local_storage_path.is_dir():
+    local_storage_path.mkdir(parents=True)
+
+# Write the data to it
+with contextlib.closing(plyvel.DB(os.fspath(local_storage_path / 'leveldb'), create_if_missing=True)) as leveldb:
+    # Doesn't overwrite pre-existing credentials data
+    leveldb.put(CREDENTIALS_KEY,
+                leveldb.get(CREDENTIALS_KEY,
+                            # I don't understand leveldb or plyvel enough to comment on why the '\x01' is necessary, but it is
+                            b'\x01' + json.dumps(jellyfin_credentials).encode()))
+    # This one does intentionally overwrite the pre-existing autologin option.
+    # I do this because it's easy to accdientally, or even habitually, hit "remember me" on login.
+    # The whole point of this system is to be a shared TV player,
+    # by leaving autologin disabled then I can easily "log out" by simply restarting the application.
+    leveldb.put(AUTOLOGIN_KEY, b'\x01false')
