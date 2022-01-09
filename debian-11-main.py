@@ -596,6 +596,8 @@ with tempfile.TemporaryDirectory() as td:
             '--include=snapclient',  # Using this as the whole house audio solution
             '--include=avahi-daemon',  # Dependency of snapclient missing in control file
 
+            '--include=wlr-randr',  # Wayland xrandr. Useful for debugging
+
             # keybinds.py
             # A daemon that handles system keybindings such as volume +/-
             '--include=python3-evdev',  # The library I use to get the keypresses
