@@ -1,0 +1,9 @@
+[[protocols]]
+name = "TV_QSP425T"
+protocol = "nec"
+variant = "nec"
+
+[protocols.scancodes]
+# Intentionally not a key symbol because I want to use this *only* for sending
+0x408 = STANDBY/ON
+# FIXME: Just put every key in here, with their printed button labels
