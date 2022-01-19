@@ -37,7 +37,11 @@ def guess_base_url():
         hostname = socket.getfqdn()
 
     assert fqdn.startswith(hostname), "FQDN does not start with hostname"
-    domain = fqdn[len(hostname) + 1:]  # '+ 1' is for the '.'
+    if hostname == fqdn:
+        # The domain name is unknown, take an educated guess
+        domain = 'lan'
+    else:
+        domain = fqdn[len(hostname) + 1:]  # '+ 1' is for the '.'
 
     # Get all SRV records and sort them by weight,
     # then grab only the first one
