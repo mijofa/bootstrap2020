@@ -4,7 +4,7 @@ import contextlib
 import json
 import os
 import pathlib
-import socket
+import subprocess
 import sys
 import urllib.parse
 import urllib.request
@@ -26,18 +26,19 @@ def guess_base_url():
 
     FIXME: Does Jellyfin already use avahi? Can we use that instead of SRV records?
     """
-    hostname = socket.gethostname()
-    fqdn = socket.getfqdn()
+    # Python was doing some really weird & stupid things when trying to get the search domain.
+    # So I gave up and called out to resolvectl instead
+    # FIXME: Why the fuck didn't python's socket module work?!?
+    #        Often gethostname & getfqdn swapped responses,
+    #        and when they did the fqdn (returned by gethostname) was cut short such that it couldn't fit the full domain
+    #        NOTE: the 'hostname' command does the same thing
+    domains = subprocess.check_output(['resolvectl', 'domain'], text=True)
+    for line in domains.splitlines():
+        _, domain = line.split(':', 1)
+        domain = domain.strip()
 
-    if '.' in hostname and '.' not in fqdn:
-        # FIXME: They the fuck are these backwards sometimes?!?
-        #        I can vaguely understand hostname sometimes including the fqdn,
-        #        but why is the fqdn missing the domain?
-        fqdn = socket.gethostname()
-        hostname = socket.getfqdn()
-
-    assert fqdn.startswith(hostname), "FQDN does not start with hostname"
-    domain = fqdn[len(hostname) + 1:]  # '+ 1' is for the '.'
+        if domain:
+            break
 
     # Get all SRV records and sort them by weight,
     # then grab only the first one
