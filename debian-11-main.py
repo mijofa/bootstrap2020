@@ -574,6 +574,7 @@ with tempfile.TemporaryDirectory() as td:
             '    i965-va-driver-shaders'  # Intel, non-free, 2013-2017
             '    intel-media-va-driver-non-free',  # Intel, non-free, 2017+
             '--include=ir-keytable',   # infrared TV remote control
+            '--include=v4l-utils',   # ir-ctl for *sending* IR signals
 
             # Having hardware support issues, let's just throw some firmware in and see if it helps
             # UPDATE: It did not, but nothing got worse either
@@ -600,6 +601,7 @@ with tempfile.TemporaryDirectory() as td:
             '--include=avahi-daemon',  # Dependency of snapclient missing in control file
 
             '--include=wlr-randr',  # Wayland xrandr. Useful for debugging
+            '--include=ydotool',  # Wayland xdotool, needed only to hide the mouse in the bottom-right  FIXME: jellyfin-media-player or phoc should handle this
 
             # keybinds.py
             # A daemon that handles system keybindings such as volume +/-
@@ -611,7 +613,8 @@ with tempfile.TemporaryDirectory() as td:
 
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
-            '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev input devices
+            '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev & uinput devices
+            '--customize-hook=chroot $1 adduser jellyfinuser video --quiet',  # For access to /dev/lirc0 device to send IR signals
 
             # Make snapclient run as a user unit, not a system unit
             '--customize-hook=systemctl disable --quiet --system --root $1 snapclient.service',
@@ -619,6 +622,7 @@ with tempfile.TemporaryDirectory() as td:
 
             # Enable the various systemd units used
             '--customize-hook=systemctl enable --quiet --system --root $1 phoc.service',
+            '--customize-hook=systemctl enable --quiet --system --root $1 fix-uinput-perms.service',
             '--customize-hook=systemctl enable --quiet --user --global --root $1 jellyfinmediaplayer.service keybinds.service volnotifier.service',  # Should maybe only enable these for jellyfinuser?
 
             f'--essential-hook=tar-in {create_tarball("jellyfin-media-player")} /']

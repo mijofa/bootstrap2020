@@ -1,0 +1,18 @@
+# NOTE: This files needs to be readable by all so that the GUI user can actually send the necessary key signals
+[[protocols]]
+name = "Switch_PortTa"
+protocol = "nec"
+variant = "nec"
+
+[protocols.scancodes]
+# Intentionally not using key symbols because I want to use this *only* for sending
+0x0 = "STANDBY/ON"
+0x2 = "MUTE"
+0x8 = "1"
+0xa = "2"
+0xc = "3"
+0xe = "4"
+0x10 = "PASS"
+0x12 = "ARC"
+0x18 = "2CH"
+0x1a = "5.1CH"
