@@ -25,7 +25,6 @@ GLOBAL_EVENT_MAPPING = {
         evdev.ecodes.KEY_VOLUMEUP: lambda: subprocess.check_call(['pactl', 'set-sink-volume', 'combined', '+2%']),
         evdev.ecodes.KEY_VOLUMEDOWN: lambda: subprocess.check_call(['pactl', 'set-sink-volume', 'combined', '-2%']),
 
-        evdev.ecodes.KEY_MENU: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_MENU')),
         evdev.ecodes.KEY_HELP: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_HELP')),
         evdev.ecodes.KEY_EPG: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_EPG')),
         evdev.ecodes.KEY_TV: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_TV')),
@@ -34,10 +33,19 @@ GLOBAL_EVENT_MAPPING = {
         evdev.ecodes.KEY_SUBTITLE: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_SUBTITLE')),
         evdev.ecodes.KEY_DASHBOARD: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_DASHBOARD')),
         evdev.ecodes.KEY_FAVORITES: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_FAVORITES')),
+        # PrisonPC compatibliity
+        evdev.ecodes.KEY_CONNECT: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_PLAYPAUSE')),  # PrisonPC did not plan
+        evdev.ecodes.KEY_CHAT: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_SUBTITLE')),  # X11 doesn't like KEY_SUBTITLE
 
-        evdev.ecodes.KEY_HOMEPAGE: lambda: subprocess.check_call(['systemctl', '--user', 'restart', 'jellyfinmediaplayer']),
-        evdev.ecodes.KEY_CLOSE: lambda: subprocess.check_call(['systemctl', '--user', 'restart', 'jellyfinmediaplayer']),
-        evdev.ecodes.KEY_EXIT: lambda: subprocess.check_call(['systemctl', '--user', 'restart', 'jellyfinmediaplayer']),
+
+        evdev.ecodes.KEY_MENU: lambda: subprocess.check_call(
+            ['systemctl', '--user', 'restart', 'jellyfinmediaplayer']),
+        evdev.ecodes.KEY_HOMEPAGE: lambda: subprocess.check_call(
+            ['systemctl', '--user', 'restart', 'jellyfinmediaplayer']),
+        evdev.ecodes.KEY_EXIT: lambda: subprocess.check_call(
+            ['systemctl', '--user', 'restart', 'jellyfinmediaplayer']),
+        evdev.ecodes.KEY_CLOSE: lambda: subprocess.check_call(
+            ['ir-ctl', '--keymap=/etc/rc_keymaps/TV_QSP425T.toml', '--keycode=STANDBY/ON']),
     },
 }
 

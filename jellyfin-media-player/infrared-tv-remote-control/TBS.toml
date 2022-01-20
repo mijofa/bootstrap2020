@@ -4,19 +4,22 @@ protocol = "nec"
 variant = "nec"
 [protocols.scancodes]
 0x9f = "KEY_EXIT"
-0x84 = "KEY_POWER"
+0x84 = "KEY_CLOSE"  # This is the power button, set to this for compatibility with the PrisonPC remote, and because systemd sees KEY_POWER and shuts down
 0x94 = "KEY_MUTE"
-0x87 = "KEY_KP1"
-0x86 = "KEY_KP2"
-0x85 = "KEY_KP3"
-0x8b = "KEY_KP4"
-0x8a = "KEY_KP5"
-0x89 = "KEY_KP6"
-0x8f = "KEY_KP7"
-0x8e = "KEY_KP8"
-0x8d = "KEY_KP9"
-0xd1 = "KEY_KPASTERISK"
-0x92 = "KEY_PLAYPAUSE"  # Should be KP0, but this remote's layout sucks so I want an easy-to-find play/pause button
+# FIXME: Really all of these numbers should be KEY_NUMERIC_* but those don't actually work
+#        Fallback should be KEY_KP* but I can't get numlock forced on, so they don't work either
+#        With this config '#' doesn't work at all, but everything else is fine, this is good enough.
+0x87 = "KEY_1"
+0x86 = "KEY_2"
+0x85 = "KEY_3"
+0x8b = "KEY_4"
+0x8a = "KEY_5"
+0x89 = "KEY_6"
+0x8f = "KEY_7"
+0x8e = "KEY_8"
+0x8d = "KEY_9"
+0xd1 = "KEY_CONNECT"  # Should probably be KPASTERISK, but this is for consistency with the PrisonPC remote where I've configured CONNECT as an extra play/pause button
+0x92 = "KEY_0"
 0xd2 = "KEY_NUMERIC_POUND"
 0x80 = "KEY_BACK"
 0xd4 = "KEY_CLEAR"

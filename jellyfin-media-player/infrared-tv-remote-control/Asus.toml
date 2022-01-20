@@ -8,8 +8,8 @@ protocol = "rc-6"
 # They alternate between starting with '0x80263' & '0x8026b'
 # There's probably a "variant" that would fix this, but I don't even know what variants exist let alone which one this is
 [protocols.scancodes]
-0x80263d0c = "KEY_SUSPEND"  # KEY_POWER?
-0x8026bd0c = "KEY_SUSPEND"  # KEY_POWER?
+0x80263d0c = "KEY_CLOSE"  # KEY_POWER?
+0x8026bd0c = "KEY_CLOSE"  # KEY_POWER?
 0x80263d0d = "KEY_MUTE"
 0x8026bd0d = "KEY_MUTE"
 0x80263d29 = "KEY_REWIND"
