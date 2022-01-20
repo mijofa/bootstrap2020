@@ -1,0 +1,15 @@
+[Unit]
+Description=Fixing /dev/uinput perms
+Before=phoc.service
+
+# FIXME: This is fucking stupid, why can't I just use a udev rule?!?
+#        I did try, but it wasn't working
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/chgrp input /dev/uinput
+ExecStart=/bin/chmod g+rw /dev/uinput
+
+[Install]
+WantedBy=phoc.service
