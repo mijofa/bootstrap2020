@@ -4,7 +4,7 @@ protocol = "nec"
 variant = "nec"
 [protocols.scancodes]
 0x9f = "KEY_EXIT"
-0x84 = "KEY_POWER"
+0x84 = "KEY_CLOSE"  # This is the power button, set to this for compatibility with the PrisonPC remote, and because systemd sees KEY_POWER and shuts down
 0x94 = "KEY_MUTE"
 0x87 = "KEY_KP1"
 0x86 = "KEY_KP2"
