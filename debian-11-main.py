@@ -537,9 +537,6 @@ with tempfile.TemporaryDirectory() as td:
 
             '--include=grim',  # Wayland screenshot utility, not really using it yet but would like to
 
-            # Allow a specific group to have read/write access to /dev/uinput so that ydotool can emulate input events as jellyfinuser
-            """--customize-hook=echo 'KERNEL=="uinput", GROUP="input", MODE="0660"' >$1/etc/udev/rules.d/99-uinput-group-access.rules""",
-
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
             '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev & uinput devices
