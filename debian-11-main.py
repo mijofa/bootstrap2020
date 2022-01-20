@@ -580,6 +580,7 @@ with tempfile.TemporaryDirectory() as td:
 
             # Enable the various systemd units used
             '--customize-hook=systemctl enable --quiet --system --root $1 phoc.service',
+            '--customize-hook=systemctl enable --quiet --system --root $1 fix-uinput-perms.service',
             '--customize-hook=systemctl enable --quiet --user --global --root $1 jellyfinmediaplayer.service keybinds.service volnotifier.service',  # Should maybe only enable these for jellyfinuser?
 
             f'--essential-hook=tar-in {create_tarball("jellyfin-media-player")} /']
