@@ -11,13 +11,14 @@ BindsTo=graphical-session.target
 Environment=XDG_SESSION_TYPE=wayland
 # Let pulseaudio "cork" other streams properly
 Environment=PULSE_PROP="media.role=video"
-# Hide the mouse cursor in the bottom-right
-# NOTE: Hardcodes a resolution max of 999999x999999,
-#       but if this code is still around when screens that large are mainstream I'd be impressed
-ExecStartPre=/usr/bin/ydotool mousemove 999999 999999
 # NOTE: This script queries SRV records when a URL is not specified on the command line
 ExecStartPre=/usr/local/bin/set-jellyfin-server.py
 ExecStart=/usr/bin/jellyfinmediaplayer --terminal --tv --fullscreen
+# Hide the mouse cursor in the bottom-right
+# NOTE: Hardcodes a resolution max of 999999x999999,
+#       but if this code is still around when screens that large are mainstream I'd be impressed
+ExecStartPost=/bin/sleep 2
+ExecStartPost=/usr/bin/ydotool mousemove 999999 999999
 Restart=on-failure
 
 [Install]
