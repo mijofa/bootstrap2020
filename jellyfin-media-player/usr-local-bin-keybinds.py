@@ -17,6 +17,11 @@ import evdev
 
 import snapcontroller
 
+import gi
+gi.require_version('Notify', '0.7')
+from gi.repository import Notify  # noqa: E402 "module level import not at top of file"
+
+NOTIFICATION_TIMEOUT = 1000  # Half of volnotifier
 
 # NOTE: The workflow of this code easily allows for per-device event maps, but that's not very useful
 # FIXME: This is mostly pulseaudio & systemd triggers, just do them in Python instead of calling out via subprocess?
@@ -142,6 +147,10 @@ async def send_to_inputSocket(keycode, source="Keyboard", client=sys.argv[0]):
 
 def increment_snap_channel(increment):
     """Increment the stream associated with the current snapcast group."""
+    notif = Notify.Notification.new("Snapcast stream")
+    notif.set_property('summary', 'Snapclient music')
+    notif.set_timeout(NOTIFICATION_TIMEOUT)
+
     with snapcontroller.SnapController() as snap:
         snap_group = snap.get_group_of_client(snapcontroller.get_physical_mac())
         current_stream = snap.run_command('Group.GetStatus', params={'id': snap_group})['group']['stream_id']
@@ -152,12 +161,17 @@ def increment_snap_channel(increment):
         new_index = (current_index + increment) % len(snap_streams)
         new_stream_id = snap_streams[new_index]
 
-        snap.run_command('Group.SetStream', params={'id': snap_group, 'stream_id': new_stream_id})
+        result = snap.run_command('Group.SetStream', params={'id': snap_group, 'stream_id': new_stream_id})
+
+    notif.set_property('body', f"Now playing stream: {result['stream_id']}")
+    notif.show()
 
 
 if __name__ == '__main__':
     for dev in get_all_capable_devices(GLOBAL_EVENT_MAPPING):
         asyncio.ensure_future(handle_events(dev, GLOBAL_EVENT_MAPPING))
+
+    Notify.init(sys.argv[0])
 
     loop = asyncio.get_event_loop()
     loop.run_forever()
