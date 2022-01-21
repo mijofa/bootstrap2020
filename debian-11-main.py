@@ -835,7 +835,6 @@ if args.boot_test:
                                 'prisonpc-inmate.lan'}]
                   if template_wants_PrisonPC_or_tvserver else []),
             ]),
-            '--device', 'virtio-net-pci',  # second NIC; not plugged in
             *(['--kernel', testdir / 'vmlinuz',
                '--initrd', testdir / 'initrd.img',
                '--append', ' '.join([
