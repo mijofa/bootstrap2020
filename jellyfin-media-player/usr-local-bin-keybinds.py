@@ -15,6 +15,8 @@ import traceback
 
 import evdev
 
+import snapcontroller
+
 
 # NOTE: The workflow of this code easily allows for per-device event maps, but that's not very useful
 # FIXME: This is mostly pulseaudio & systemd triggers, just do them in Python instead of calling out via subprocess?
@@ -24,6 +26,11 @@ GLOBAL_EVENT_MAPPING = {
         evdev.ecodes.KEY_MUTE: lambda: subprocess.check_call(['pactl', 'set-sink-mute', 'combined', 'toggle']),
         evdev.ecodes.KEY_VOLUMEUP: lambda: subprocess.check_call(['pactl', 'set-sink-volume', 'combined', '+2%']),
         evdev.ecodes.KEY_VOLUMEDOWN: lambda: subprocess.check_call(['pactl', 'set-sink-volume', 'combined', '-2%']),
+
+        evdev.ecodes.KEY_CHANNELUP: lambda: increment_snap_channel(+1),
+        evdev.ecodes.KEY_CHANNELDOWN: lambda: increment_snap_channel(-1),
+        evdev.ecodes.KEY_MEDIA: lambda: increment_snap_channel(+1),
+        evdev.ecodes.KEY_SOUND: lambda: increment_snap_channel(-1),
 
         evdev.ecodes.KEY_HELP: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_HELP')),
         evdev.ecodes.KEY_EPG: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_EPG')),
@@ -131,6 +138,21 @@ async def send_to_inputSocket(keycode, source="Keyboard", client=sys.argv[0]):
             await loop.sock_sendall(inputSocket, data.encode())
         else:
             print("Socket not connected, can't send data", keycode, file=sys.stderr)
+
+
+def increment_snap_channel(increment):
+    """Increment the stream associated with the current snapcast group."""
+    with snapcontroller.SnapController() as snap:
+        snap_group = snap.get_group_of_client(snapcontroller.get_physical_mac())
+        current_stream = snap.run_command('Group.GetStatus', params={'id': snap_group})['group']['stream_id']
+
+        snap_streams = snap.get_all_streams()
+        current_index = snap_streams.index(current_stream)
+
+        new_index = (current_index + increment) % len(snap_streams)
+        new_stream_id = snap_streams[new_index]
+
+        snap.run_command('Group.SetStream', params={'id': snap_group, 'stream_id': new_stream_id})
 
 
 if __name__ == '__main__':
