@@ -21,7 +21,7 @@ import gi
 gi.require_version('Notify', '0.7')
 from gi.repository import Notify  # noqa: E402 "module level import not at top of file"
 
-NOTIFICATION_TIMEOUT = 1000  # Half of volnotifier
+NOTIFICATION_TIMEOUT = 2000  # Same as volnotifier
 
 # NOTE: The workflow of this code easily allows for per-device event maps, but that's not very useful
 # FIXME: This is mostly pulseaudio & systemd triggers, just do them in Python instead of calling out via subprocess?
@@ -163,7 +163,7 @@ def increment_snap_channel(increment):
 
         result = snap.run_command('Group.SetStream', params={'id': snap_group, 'stream_id': new_stream_id})
 
-    notif.set_property('body', f"Now playing stream: {result['stream_id']}")
+    notif.set_property('body', f"Tuned to: {result['stream_id']}")
     notif.show()
 
 
