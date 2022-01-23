@@ -15,7 +15,7 @@ ExecStartPre=/bin/sh -c 'systemctl --user set-environment SNAPCAST_PORT=$(/usr/l
 # Snapclient automatically uses the local hostname as the identifier and the MAC address as the UUID,
 # so we don't need to roll our own client identifier to last across reboots.
 # NOTE: qemu & spice adds a lot of latency, making the actual time syncing hard to test in a VM
-ExecStart=/usr/bin/snapclient --logsink=stderr --player pulse:property=media.role=music --host $SNAPCAST_HOST --port $SNAPCAST_PORT
+ExecStart=/usr/bin/snapclient --logsink=stderr --player pulse:property=media.role=music --host $SNAPCAST_HOST --port $SNAPCAST_PORT --mixer script:/usr/local/bin/snapvol.py
 # Upstream says stdout gets "very noisy", I disagree
 #StandardOutput=null
 Restart=on-failure
