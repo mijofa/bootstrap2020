@@ -17,7 +17,7 @@ ExecStart=/usr/bin/jellyfinmediaplayer --terminal --tv --fullscreen
 # Hide the mouse cursor in the bottom-right
 # NOTE: Hardcodes a resolution max of 999999x999999,
 #       but if this code is still around when screens that large are mainstream I'd be impressed
-ExecStartPost=/bin/sleep 2
+ExecStartPost=/bin/sleep 3
 ExecStartPost=/usr/bin/ydotool mousemove 999999 999999
 Restart=on-failure
 
