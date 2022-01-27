@@ -1,0 +1,9 @@
+# -*-conf-*-
+[Plymouth Theme]
+Name=Jellyfin
+Description=Jellyfin Logo
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/jellyfin
+ScriptFile=/usr/share/plymouth/themes/jellyfin/jellyfin.script
