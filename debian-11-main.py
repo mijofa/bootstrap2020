@@ -561,6 +561,10 @@ with tempfile.TemporaryDirectory() as td:
             '--include=wlr-randr',  # Wayland xrandr. Useful for debugging
             '--include=ydotool',  # Wayland xdotool, needed only to hide the mouse in the bottom-right  FIXME: jellyfin-media-player or phoc should handle this
 
+            '--include=plymouth-themes',  # For custom bootup logo
+            # Workaround https://bugs.debian.org/1004001 (FIXME: fix upstream)
+            '--essential-hook=chroot $1 apt install -y fontconfig-config',
+
             # keybinds.py
             # A daemon that handles system keybindings such as volume +/-
             '--include=python3-evdev',  # The library I use to get the keypresses
