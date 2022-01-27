@@ -1,0 +1,57 @@
+# -*-conf-*-
+wallpaper_image = Image("logo.png");
+wallpaper_sprite = Sprite(wallpaper_image);
+wallpaper_sprite.SetX((Window.GetWidth() - wallpaper_image.GetWidth()) / 2);
+wallpaper_sprite.SetY((Window.GetHeight() - wallpaper_image.GetHeight()) / 2);
+wallpaper_sprite.SetZ(-100);
+
+
+# --- Progress bar ---
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+# Set up progress bar background image, and get its dimensions
+progress_bg_image = Image("progress-box.png");
+progress_bg_width = progress_bg_image.GetWidth();
+progress_bg_height = progress_bg_image.GetHeight();
+progress_bg_sprite = Sprite(progress_bg_image);
+
+# Set up progress bar background image, and get its dimensions
+progress_bar_image = Image("progress-bar.png");
+progress_bar_width = progress_bar_image.GetWidth();
+progress_bar_height = progress_bar_image.GetHeight();
+# Down-scale the progress bar to 20% of its original size
+# NOTE: This abuses the fact that the progress bar is a solid image that
+# won't look weird when squashed horizontally
+progress_bar_sprite = Sprite(progress_bar_image.Scale(progress_bar_width * 0.2, progress_bar_height));
+
+# Place the background image horizontally centered, and 3/4 down the
+# screen
+progress_bg_sprite.SetX((screen_width - progress_bg_width) / 2);
+progress_bg_sprite.SetY((screen_height - progress_bg_height) / 2 * 1.5);
+
+# Place the progress bar right in the middle of its background image
+progress_bar_sprite.SetX(progress_bg_sprite.GetX() + ((progress_bg_width - progress_bar_width) / 2));
+progress_bar_sprite.SetY(progress_bg_sprite.GetY() + ((progress_bg_height - progress_bar_height) / 2));
+
+# Find the left and right limits of the progress bar's path
+progress_bar_left = progress_bar_sprite.GetX();
+progress_bar_right = progress_bar_left + (progress_bar_width * 0.8);
+
+# Decide how quickly we should shift the progress bar back and forth
+increment = -4;
+
+fun progress_callback (duration, progress)
+{
+  # If we're at the left-most or right-most side of the progress
+  # background, change direction
+  if((progress_bar_sprite.GetX() <= progress_bar_left) ||
+     (progress_bar_sprite.GetX() >= progress_bar_right))
+  {
+    increment = increment * -1;
+  }
+  # Shift progress bar by increment.
+  progress_bar_sprite.SetX(progress_bar_sprite.GetX() + increment);
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
