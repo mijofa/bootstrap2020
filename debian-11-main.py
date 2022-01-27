@@ -529,6 +529,7 @@ with tempfile.TemporaryDirectory() as td:
             '--include=wlr-randr',  # Wayland xrandr. Useful for debugging
             '--include=ydotool',  # Wayland xdotool, needed only to hide the mouse in the bottom-right  FIXME: jellyfin-media-player or phoc should handle this
 
+            '--include=swaybg',  # For setting Phoc's background image.   NOTE Has nothing to do with sway
             '--include=plymouth-themes',  # For custom bootup logo
             # Workaround https://bugs.debian.org/1004001 (FIXME: fix upstream)
             '--essential-hook=chroot $1 apt install -y fontconfig-config',
@@ -552,6 +553,11 @@ with tempfile.TemporaryDirectory() as td:
             '--customize-hook=systemctl enable --quiet --user --global --root $1 snapclient.service',
 
             # Enable the various systemd units used
+            '--customize-hook=rm $1/lib/systemd/system/multi-user.target.wants/plymouth-quit.service',  # disable doesn't actually work because Debian created the symlink explicitly without putting "WantedBy" in the .service file
+            '--customize-hook=systemctl mask --quiet --system --root $1 plymouth-quit-wait.service',  # This is a service that waits for plymouth to stop before allowing graphical.target to start, that gets stupidly in the way for us.
+
+            '--customize-hook=systemctl enable --quiet --system --root $1 plymouth-quit.service',  # Instead of disabling plymouth, just have the stop unit start *after* phoc
+
             '--customize-hook=systemctl enable --quiet --system --root $1 phoc.service',
             '--customize-hook=systemctl enable --quiet --system --root $1 fix-uinput-perms.service',
             '--customize-hook=systemctl enable --quiet --user --global --root $1 jellyfinmediaplayer.service keybinds.service volnotifier.service',  # Should maybe only enable these for jellyfinuser?
