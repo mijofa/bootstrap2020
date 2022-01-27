@@ -1,0 +1,64 @@
+[[protocols]]
+name = "unlabelled_black"
+protocol = "nec"
+variant = "necx"
+[protocols.scancodes]
+0x4ba1c = "KEY_CLOSE"  # This is the power button, set to CLOSE for compatibility with the PrisonPC remote, and because systemd sees KEY_POWER and shuts down
+0x4ba14 = "KEY_EXIT"  # This one is actually labelled "CLOSE", but I used that in place of "Power" on other remotes, so this gets better compatibility
+
+0x4ba09 = "KEY_VIDEO"
+0x4ba1d = "KEY_TV"
+0x4ba1f = "KEY_RADIO"
+0x4ba0d = "KEY_IMAGES"
+0x4ba19 = "KEY_AUDIO"
+0x4ba1b = "KEY_DVD"
+
+0x4ba11 = "KEY_REWIND"
+0x4ba15 = "KEY_STOPCD"
+0x4ba17 = "KEY_FASTFORWARD"
+0x4ba16 = "KEY_PREVIOUSSONG"
+0x4ba12 = "KEY_PLAYPAUSE"
+0x4ba04 = "KEY_NEXTSONG"
+
+0x4ba0f = "KEY_VOLUMEUP"
+0x4ba43 = "KEY_VOLUMEDOWN"
+0x4ba01 = "KEY_MUTE"
+0x4ba54 = "KEY_PC"
+0x4ba05 = "KEY_VENDOR"
+0x4ba53 = "KEY_CHANNELUP"
+0x4ba18 = "KEY_CHANNELDOWN"
+
+0x4ba03 = "KEY_UP"
+0x4ba0e = "KEY_LEFT"
+0x4ba07 = "KEY_ENTER"
+0x4ba1a = "KEY_RIGHT"
+0x4ba02 = "KEY_DOWN"
+
+0x4ba00 = "KEY_ESC"
+0x4ba13 = "KEY_INFO"
+
+0x4ba06 = "KEY_RED"  # Also labelled "REC"
+0x4ba47 = "KEY_GREEN"  # Also labelled "WWW"
+0x4ba0b = "KEY_YELLOW"  # Also labelled "E-mail"
+0x4ba10 = "KEY_BLUE"  # Also labelled "Toggle" with a mouse icon  NOTE: This remote was intended for a keyboard emulating reciever that also had a mouse emulating mode
+
+# FIXME: Really all of these numbers should be KEY_NUMERIC_* but those don't actually work
+#        Fallback should be KEY_KP* but I can't get numlock forced on, so they don't work either
+#        With this config '#' doesn't work at all, but everything else is fine, this is good enough.
+0x4ba4f = "KEY_1"
+0x4ba57 = "KEY_2"
+0x4ba5b = "KEY_3"
+0x4ba1e = "KEY_4"
+0x4ba5f = "KEY_5"
+0x4ba08 = "KEY_6"
+0x4ba0c = "KEY_7"
+0x4ba4c = "KEY_8"
+0x4ba48 = "KEY_9"
+0x4ba40 = "KEY_KPASTERISK"
+0x4ba44 = "KEY_0"
+0x4ba5c = "KEY_NUMERIC_POUND"
+
+0x4ba4b = "KEY_PAGEUP"
+0x4ba58 = "KEY_PAGEDOWN"
+0x4ba0a = "KEY_F11"  # Technically KEY_FULL_SCREEN would probably be more fitting, but everyone uses F11
+0x4ba50 = "KEY_CLEAR"
