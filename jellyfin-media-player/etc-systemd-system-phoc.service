@@ -25,6 +25,9 @@ After=session-c1.scope
 # it is complete.
 Before=graphical.target
 
+# Attempt at seamless plymouth integration
+Before=plymouth-quit.target
+
 # Prevent starting on systems without virtual consoles
 ConditionPathExists=/dev/tty0
 
