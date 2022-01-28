@@ -54,7 +54,7 @@ variant = "necx"
 0x4ba0c = "KEY_7"
 0x4ba4c = "KEY_8"
 0x4ba48 = "KEY_9"
-0x4ba40 = "KEY_KPASTERISK"
+0x4ba40 = "KEY_CONNECT"  # Should probably be KPASTERISK, but this is for consistency with the PrisonPC remote where I've configured CONNECT as an extra play/pause button
 0x4ba44 = "KEY_0"
 0x4ba5c = "KEY_NUMERIC_POUND"
 
