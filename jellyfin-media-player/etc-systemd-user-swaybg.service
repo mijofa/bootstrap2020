@@ -2,17 +2,15 @@
 Description=Background image
 # Literally just run it as early as possible, but only after phoc starts
 Before=pulseaudio.service
-Befpre=jellyfinmediaplayer.service
-Befpre=keybinds.service
-Befpre=snapclient.service
-Befpre=volnotifier.service
+Before=jellyfinmediaplayer.service
+Before=keybinds.service
+Before=snapclient.service
+Before=volnotifier.service
 
 BindsTo=graphical-session.target
 
 [Service]
-RemainAfterExit=yes
-ExecStart=/usr/bin/swaybg --color 000000 --image /usr/share/plymouth/themes/jellyfin/logo.png --mode center
-ExecStop=/usr/bin/swaybg --color 000000
+ExecStart=/usr/bin/swaybg --color '#000000' --image /usr/share/plymouth/themes/jellyfin/logo.png --mode center
 
 [Install]
 WantedBy=graphical-session.target
