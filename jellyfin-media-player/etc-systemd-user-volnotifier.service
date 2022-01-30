@@ -1,5 +1,6 @@
 [Unit]
 Description=Notification handler for PulseAudio volume changes
+Wants=pulseaudio.service
 After=pulseaudio.service
 PartOf=graphical-session.target
 
