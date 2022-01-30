@@ -37,6 +37,7 @@ Environment=XDG_CURRENT_DESKTOP=GNOME
 Environment=XDG_SESSION_DESKTOP=phosh
 Environment=XDG_SESSION_TYPE=wayland
 ExecStart=/usr/bin/phoc --config /etc/phoc.ini --exec '/bin/systemctl --user start --wait jellyfinmediaplayer.service'
+ExecStop=/bin/systemctl --user stop --no-block graphical-session.target
 TimeoutStartSec=30
 User=jellyfinuser
 PAMName=login
