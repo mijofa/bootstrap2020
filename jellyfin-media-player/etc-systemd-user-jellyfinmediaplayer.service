@@ -1,6 +1,7 @@
 [Unit]
 Description=Jellyfin Media Player
-After=pulseaudio.service
+Wants=pulseaudio.service swaybg.service
+After=pulseaudio.service swaybg.service
 # I get the feeling that this maybe shouldn't be bound to graphical-session,
 # but it makes the most sense as there's no window manager or anything.
 BindsTo=graphical-session.target
