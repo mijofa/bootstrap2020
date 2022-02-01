@@ -30,8 +30,8 @@ NOTIFICATION_TIMEOUT = 2000  # Same as volnotifier
 GLOBAL_EVENT_MAPPING = {
     evdev.ecodes.EV_KEY: {
         evdev.ecodes.KEY_MUTE: lambda: subprocess.check_call(['pactl', 'set-sink-mute', 'combined', 'toggle']),
-        evdev.ecodes.KEY_VOLUMEUP: lambda: subprocess.check_call(['pactl', 'set-sink-volume', 'combined', '+2%']),
-        evdev.ecodes.KEY_VOLUMEDOWN: lambda: subprocess.check_call(['pactl', 'set-sink-volume', 'combined', '-2%']),
+        evdev.ecodes.KEY_VOLUMEUP: lambda: subprocess.check_call(['pactl', 'set-sink-volume', 'combined', '+5%']),
+        evdev.ecodes.KEY_VOLUMEDOWN: lambda: subprocess.check_call(['pactl', 'set-sink-volume', 'combined', '-5%']),
 
         evdev.ecodes.KEY_CHANNELUP: lambda: increment_snap_channel(+1),
         evdev.ecodes.KEY_CHANNELDOWN: lambda: increment_snap_channel(-1),
