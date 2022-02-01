@@ -16,6 +16,16 @@ ExecStartPre=/bin/sh -c 'systemctl --user set-environment SNAPCAST_PORT=$(/usr/l
 # so we don't need to roll our own client identifier to last across reboots.
 # NOTE: qemu & spice adds a lot of latency, making the actual time syncing hard to test in a VM
 ExecStart=/usr/bin/snapclient --logsink=stderr --player pulse:property=media.role=music --host $SNAPCAST_HOST --port $SNAPCAST_PORT --mixer script:/usr/local/bin/snapvol.py
+
+# Set the initial volume of this client to 50% (equivalent to 100% on the HW mixer) before audio actually starts playing
+# This will always fail the first time any new system runs this because the server doesn't know about this client.
+# But that will simply cause the systemd to restart this service,
+# and since systemd gives snapclient a few seconds to gracefully shutdown,
+# the server will definitelly know about us by the time the 2nd run comes around.
+# I could put a sleep or wait-loop on this, but that may result in a moment of 100% volume,
+# which could be rough on the ears & amplifiers
+ExecStartPost=/usr/local/bin/snapcontroller.py Client SetVolume --percent 50
+
 # Upstream says stdout gets "very noisy", I disagree
 #StandardOutput=null
 Restart=on-failure
