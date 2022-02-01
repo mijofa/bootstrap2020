@@ -60,6 +60,11 @@ class NotificationController(object):
 
     def update_notification(self, muted, vol_percentage):
         """Set the notification's volume & mute status, and reset the timeout."""
+        # Y'know what, we're almost always ~150% anyway, and going above 100% is confusing to users.
+        # So fuck it, just divide the percentage by 2.
+        # This *only* affects the displayed percentage, not the actual volume of anything.
+        vol_percentage = vol_percentage / 2
+
         self._set_icon(self._get_icon_name_for_volume(muted, vol_percentage))
         self.notif.set_property('summary', f'Volume: {vol_percentage:.0%}')
         self.notif.set_property('body', 'MUTED' if muted else '')
