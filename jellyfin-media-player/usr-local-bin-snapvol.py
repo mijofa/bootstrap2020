@@ -43,7 +43,11 @@ def get_sink_by_name(bus, core, sink_name):
 
 def convert_decimal_to_pa(decimal):
     """Convert a decimal percentage into something PulseAudio better accepts."""
-    return dbus.UInt32(decimal * 65536)
+    # 65536 = PulseAudio's 100%
+    # But we normally go above 100%,
+    # so in order to maintain more control over the volume from Snapcast I'm doubling it.
+    # This should result in Snapcasts slider going covering PulseAudio's 0-200% instead.
+    return dbus.UInt32(decimal * (65536 * 2))
 
 
 if __name__ == '__main__':
