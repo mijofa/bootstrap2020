@@ -2,6 +2,7 @@
 """A script to allow snapclient to set the PulseAudio sink volume & mute state."""
 import argparse
 import os
+import getpass
 
 import dbus
 
@@ -26,6 +27,26 @@ def get_pulse_bus_address():
         address = server_lookup.Get("org.PulseAudio.ServerLookup1", "Address",
                                     dbus_interface="org.freedesktop.DBus.Properties")
     return address
+
+
+def get_snapclient_streams(bus, core):
+    """
+    Get Snapclient's playback stream.
+
+    This is used so that we can mute the Snapcast group without muting the actual video playback,
+    while still maintaining control over the video playback volume from the Snapcast server.
+    """
+    for stream_path in core.Get("org.PulseAudio.Core1", "PlaybackStreams"):
+        stream = bus.get_object("org.PulseAudio.Core1.PlaybackStream", stream_path)
+        PropertyList = stream.Get("org.PulseAudio.Core1.Stream", "PropertyList")
+        # DBus's named arrays are incredibly difficult to work with, convert it to a dict
+        properties = {str(k): bytes(b for b in v).strip(b'\x00').decode() for k, v in PropertyList.items()}
+
+        # Consider any binary named 'snapclient' to be what we're looking for,
+        # but ignore any by other users, just in case.
+        if properties.get('application.process.user') == getpass.getuser() and \
+                properties.get('application.process.binary') == 'snapclient':
+            yield stream
 
 
 def get_fallback_sink(bus, core):
@@ -54,9 +75,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # FIXME: --help-all does not work without all other required arguments.
     #        I don't currently have any idea how to work around this.
-    parser.add_argument('--volume', type=float, required=True,
+    parser.add_argument('--volume', type=float,
                         help="The volume percentage (as decimal: 0-1) to set the pulseaudio sink to.")
-    parser.add_argument('--mute', type=str_to_bool, required=True,
+    parser.add_argument('--mute', type=str_to_bool,
                         help="Whether to mute the sink or not")
 
     parser.add_argument('--sink', type=str, default=None,
@@ -74,7 +95,10 @@ if __name__ == '__main__':
     else:
         sink = get_sink_by_name(pulse_bus, pulse_core, args.sink)
 
-    sink.Set("org.PulseAudio.Core1.Device", "Mute",
-             dbus.Boolean(args.mute, variant_level=1))
-    sink.Set("org.PulseAudio.Core1.Device", "Volume",
-             dbus.Array((convert_decimal_to_pa(args.volume),), variant_level=1))
+    if args.mute is not None:
+        for stream in get_snapclient_streams(pulse_bus, pulse_core):
+            stream.Set("org.PulseAudio.Core1.Stream", "Mute",
+                       dbus.Boolean(args.mute, variant_level=1))
+    if args.volume is not None:
+        sink.Set("org.PulseAudio.Core1.Device", "Volume",
+                 dbus.Array((convert_decimal_to_pa(args.volume),), variant_level=1))
