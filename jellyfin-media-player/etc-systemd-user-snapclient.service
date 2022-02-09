@@ -9,7 +9,7 @@ PartOf=graphical-session.target
 # This version of snapclient doesn't seem to actually support setting pulse properties on the commandline
 Environment=PULSE_PROP="media.role=music"
 # FIXME: If avahi is working properly then we shouldn't need SRV records at all
-ExecStartPre=/bin/sh -c 'DOMAIN="$(hostname --domain)" ; test -n "$DOMAIN" || DOMAIN="lan" ; systemctl --user set-environment DOMAIN="$DOMAIN"'
+ExecStartPre=/bin/sh -c 'systemctl --user set-environment DOMAIN=$(resolvectl domain | sed "1d;s/[^:]*:\s//" | head -1)'
 ExecStartPre=/bin/sh -c 'systemctl --user set-environment SNAPCAST_HOST=$(/usr/lib/apt/apt-helper srv-lookup "_snapcast._tcp.$DOMAIN" | sort -n -k2,3 | head -1 | cut -f1)'
 ExecStartPre=/bin/sh -c 'systemctl --user set-environment SNAPCAST_PORT=$(/usr/lib/apt/apt-helper srv-lookup "_snapcast._tcp.$DOMAIN" | sort -n -k2,3 | head -1 | cut -f4)'
 # Snapclient automatically uses the local hostname as the identifier and the MAC address as the UUID,
