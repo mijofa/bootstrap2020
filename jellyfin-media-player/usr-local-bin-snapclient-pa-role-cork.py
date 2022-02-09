@@ -4,8 +4,9 @@ Watch for changes to pulseaudio sink inputs and silence snapcast accordingly.
 
 NOTE: Depends on module-dbus-protocol being loaded into PulseAudio
 """
-import os
 import argparse
+import json
+import os
 
 import dbus
 import dbus.mainloop.glib
@@ -31,6 +32,7 @@ def pa_array_to_dict(array):
 class PulseCorkHandler(object):
     """Handle D-Bus signals from PulseAudio."""
 
+    mainloop = None
     known_stream_roles = {}
 
     def _get_bus_address(self):
@@ -43,8 +45,11 @@ class PulseCorkHandler(object):
                                         dbus_interface="org.freedesktop.DBus.Properties")
         return address
 
-    def __init__(self, trigger_roles: list, snapctrl, ignore_filter_roles=True):
+    def __init__(self, trigger_roles: list, snapctrl, ignore_filter_roles=True, mainloop=None):
         """Set up D-Bus listeners."""
+        if mainloop:
+            self.mainloop = mainloop
+
         self.trigger_roles = trigger_roles
         self.ignore_filter_roles = ignore_filter_roles
         self.snapcontroller = snapctrl
@@ -79,12 +84,20 @@ class PulseCorkHandler(object):
             pass
         else:
             self.known_stream_roles[stream_path] = stream_role
-            self.roles_updated()
+            try:
+                self.roles_updated()
+            except json.decoder.JSONDecodeError:
+                self.exit()
+                raise
 
     def _PlaybackStreamRemoved(self, stream_path):
         if stream_path in self.known_stream_roles:
             self.known_stream_roles.pop(stream_path)
-            self.roles_updated()
+            try:
+                self.roles_updated()
+            except json.decoder.JSONDecodeError:
+                self.exit()
+                raise
 
     def roles_updated(self):
         """Handle the roles list and mute/unmute the Snapcast group accordingly."""
@@ -96,14 +109,26 @@ class PulseCorkHandler(object):
             self.snapcontroller.run_command('Group.SetMute', {'id': snap_group_id, 'mute': False})
             print("Unmuting", self.known_stream_roles)
 
+    def exit(self):
+        """Exit the main loop."""
+        if self.mainloop:
+            print("Quitting mainloop")
+            mainloop.quit()
+        else:
+            print("No mainloop to quit")
+
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('trigger_roles', nargs='+', type=str)
 args = parser.parse_args()
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+mainloop = GLib.MainLoop()
 
 # FIXME: Use SRV records or something instead of just hardcoding the snapserver details in here
-pulse = PulseCorkHandler(trigger_roles=args.trigger_roles, snapctrl=snapcontroller.SnapController('music', 1705))
+pulse = PulseCorkHandler(trigger_roles=args.trigger_roles,
+                         snapctrl=snapcontroller.SnapController('music', 1705),
+                         mainloop=mainloop)
 
-GLib.MainLoop().run()
+mainloop.run()
+raise Exception("Uh, this should never happen as this should be a long running process.")

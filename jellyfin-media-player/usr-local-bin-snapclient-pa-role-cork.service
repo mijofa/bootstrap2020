@@ -11,5 +11,13 @@ Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
 ExecStart=/usr/local/bin/snapclient-pa-role-cork.py video
 Restart=on-failure
 
+# There was a problem with it restarting too quickly.
+# I don't know how quickly is "too quickly", but a 3s delay should help.
+RestartSec=3
+# Fuck it, just don't stop trying to restart the service
+DefaultStartLimitIntervalSec=0
+
+# My hope is that the instability hacks go away once I get the snapserver updated
+
 [Install]
 WantedBy=graphical-session.target
