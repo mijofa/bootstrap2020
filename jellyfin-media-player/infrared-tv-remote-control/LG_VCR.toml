@@ -1,0 +1,47 @@
+[[protocols]]
+name = "TBS"
+protocol = "nec"
+variant = "nec"
+
+[protocols.scancodes]
+# These are all in the 'tv' section'
+0x408  = "KEY_CLOSE"
+0x400  = "KEY_CHANNELUP"
+0x401  = "KEY_CHANNELDOWN"
+0x402  = "KEY_VOLUMEUP"
+0x403  = "KEY_VOLUMEDOWN"
+0x40b  = "KEY_TV"
+
+0x6e14 = "KEY_EXIT"
+0x6e00 = "KEY_EJECTCD"
+0x6e05 = "KEY_1"
+0x6e06 = "KEY_2"
+0x6e07 = "KEY_3"
+0x6e0c = "KEY_4"
+0x6e0d = "KEY_5"
+0x6e0e = "KEY_6"
+0x6e0f = "KEY_7"
+0x6e1c = "KEY_8"
+0x6e1d = "KEY_9"
+0x6e04 = "KEY_0"
+0x6e3f = "KEY_SCREENSAVER"
+0x6e09 = "KEY_RECORD"
+0x6e48 = "KEY_TV2"
+0x6e02 = "KEY_REWIND"
+0x6e03 = "KEY_FASTFORWARD"
+0x6e0b = "KEY_PAUSECD"
+0x6e08 = "KEY_PLAYCD"
+0x6e01 = "KEY_STOPCD"
+0x6e16 = "KEY_MENU"
+0x6e56 = "KEY_COMPUTER"
+0x6e82 = "KEY_UP"
+0x6e83 = "KEY_LEFT"
+0x6e8e = "KEY_ENTER"
+0x6e90 = "KEY_RIGHT"
+0x6e89 = "KEY_DOWN"
+0x6e1f = "KEY_CLEAR"
+0x6e15 = "KEY_VCR"
+0x6eb6 = "KEY_PREVIOUSSONG"  # Is labelled "ez REPEAT" on the remote
+0x6edd = "KEY_NEXTSONG"
+0x6eb8 = "KEY_POWER"  # FIXME: Just make this the "power" button? It's not easy to accidently press
+0x6e47 = "KEY_CONNECT"  # Should probably be KPASTERISK, but this is for consistency with the PrisonPC remote where I've configured CONNECT as an extra play/pause button
