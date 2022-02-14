@@ -10,7 +10,7 @@ variant = "nec"
 0x401  = "KEY_CHANNELDOWN"
 0x402  = "KEY_VOLUMEUP"
 0x403  = "KEY_VOLUMEDOWN"
-0x40b  = "KEY_TV"
+0x40b  = "KEY_MUTE"  # Label says "AV", but there's no mute button in this remote, and this seemed most reasonable for it
 
 0x6e14 = "KEY_EXIT"
 0x6e00 = "KEY_EJECTCD"
