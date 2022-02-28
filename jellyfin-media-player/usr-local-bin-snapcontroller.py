@@ -51,7 +51,7 @@ API_CMD_ARGS = {
             "GetRPCVersion": {'help': 'Query the API version the server users'},
             "GetStatus": {'help': 'Query status & state info'},
             "DeleteClient": {'help': 'Delete a client from the list',
-                             'params': {'--id': {'nargs': 1, 'help': 'The client to delete'}}},
+                             'params': {'--id': {'help': 'The client to delete'}}},
         }},
     "Stream": {
         'params': {
