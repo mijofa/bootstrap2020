@@ -20,6 +20,10 @@ ExecStart=/usr/bin/jellyfinmediaplayer --terminal --tv --fullscreen
 #       but if this code is still around when screens that large are mainstream I'd be impressed
 ExecStartPost=/bin/sleep 3
 ExecStartPost=/usr/bin/ydotool mousemove 999999 999999
+
+ExecStopPost=/usr/bin/pacmd set-sink-volume combined 49152
+ExecStopPost=/usr/local/bin/snapcontroller.py Group SetStream --stream_id "ch00 - Daily"
+
 Restart=on-failure
 
 [Install]
