@@ -22,3 +22,9 @@ The following packages found on this system are affected by this:
   - libbinutils:amd64 (installed version: 2.35.2-2)
   - libctf-nobfd0:amd64 (installed version: 2.35.2-2)
   - libctf0:amd64 (installed version: 2.35.2-2)
+* Source:qtwebengine-opensource-src
+  Details: No security support upstream and backports not feasible, only for use on trusted content
+  - libqt5webengine-data (installed version: 5.15.2+dfsg-3)
+  - libqt5webengine5:amd64 (installed version: 5.15.2+dfsg-3)
+  - libqt5webenginecore5:amd64 (installed version: 5.15.2+dfsg-3)
+  - qml-module-qtwebengine:amd64 (installed version: 5.15.2+dfsg-3)
