@@ -125,10 +125,12 @@ class SnapController(object):
 
     last_command_id = 0
 
-    def __init__(self, host: str = 'music', port: int = 1705):
+    def __init__(self, host: str = None, port: int = None):
         """Initialise the socket connections."""
+        default_host, default_port = get_defaults_from_srv()
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((host, port))
+        self.sock.connect((host or default_host, port or default_port))
         self.sock.setblocking(0)
 
     def __enter__(self):  # noqa: D105 "Missing docstring in magic method"
@@ -340,8 +342,7 @@ if __name__ == '__main__':
 
     method = f"{params.pop('method_group')}.{params.pop('method')}"
 
-    default_host, default_port = get_defaults_from_srv()
-    with SnapController(params.pop('host') or default_host, params.pop('port') or default_port) as ctrl:
+    with SnapController(params.pop('host'), params.pop('port')) as ctrl:
         api_version = ctrl.run_command('Server.GetRPCVersion')
         if api_version != {'major': 2, 'minor': 0, 'patch': 0}:
             raise NotImplementedError("RPC API version mismatch")
