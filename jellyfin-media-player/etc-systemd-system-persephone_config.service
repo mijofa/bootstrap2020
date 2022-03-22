@@ -7,7 +7,7 @@ Before=phoc.service
 ConditionHost=persephone
 
 [Service]
-ExecStart=mv /etc/pulse/persephone_match.table /etc/pulse/match.table
+ExecStart=ln -sfv /etc/pulse/persephone_match.table /etc/pulse/match.table
 
 [Install]
 WantedBy=graphical.target
