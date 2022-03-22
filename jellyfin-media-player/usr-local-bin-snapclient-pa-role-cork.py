@@ -119,6 +119,8 @@ class PulseCorkHandler(object):
 
 
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--host', required=True, default='music', type=str)
+parser.add_argument('--port', required=True, default=1705, type=int)
 parser.add_argument('trigger_roles', nargs='+', type=str)
 args = parser.parse_args()
 
@@ -127,7 +129,7 @@ mainloop = GLib.MainLoop()
 
 # FIXME: Use SRV records or something instead of just hardcoding the snapserver details in here
 pulse = PulseCorkHandler(trigger_roles=args.trigger_roles,
-                         snapctrl=snapcontroller.SnapController('music', 1705),
+                         snapctrl=snapcontroller.SnapController(args.host, args.port),
                          mainloop=mainloop)
 
 mainloop.run()
