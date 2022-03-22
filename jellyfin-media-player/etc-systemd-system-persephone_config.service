@@ -1,0 +1,14 @@
+[Unit]
+Description=Apply Persephone's host specific config
+
+Before=graphical.target
+Before=phoc.service
+
+ConditionHost=persephone
+
+[Service]
+ExecStart=ln -sfv /etc/pulse/persephone_match.table /etc/pulse/match.table
+
+[Install]
+WantedBy=graphical.target
+WantedBy=phoc.service
