@@ -1,0 +1,12 @@
+[Unit]
+Description=Apply Persephone's host specific audio device profile
+
+After=pulseaudio.service
+
+ConditionHost=persephone
+
+[Service]
+ExecStart=pactl set-card-profile alsa_card.pci-0000_00_1b.0 output:hdmi-stereo-extra1
+
+[Install]
+WantedBy=pulseaudio.service
