@@ -9,8 +9,10 @@ import argparse
 import json
 import pprint  # noqa: F401 "imported but unused"  # This is useful for debugging
 import socket
+import subprocess
 import time
 
+import dns.resolver
 import psutil
 
 
@@ -243,15 +245,41 @@ def help_all(parser, top_level=True):
         help_all(subparser, top_level=False)
 
 
+def get_defaults_from_srv():
+    """Query DNS SRV records for default snapcast server."""
+    # Python was doing some really weird & stupid things when trying to get the search domain.
+    # So I gave up and called out to resolvectl instead
+    # FIXME: Why the fuck didn't python's socket module work?!?
+    #        Often gethostname & getfqdn swapped responses,
+    #        and when they did the fqdn (returned by gethostname) was cut short such that it couldn't fit the full domain
+    #        NOTE: the 'hostname' command does the same thing
+    domains = subprocess.check_output(['resolvectl', 'domain'], text=True)
+    for line in domains.splitlines():
+        _, domain = line.split(':', 1)
+        domain = domain.strip()
+
+        if domain:
+            break
+
+    # Get all SRV records and sort them by weight,
+    # then grab only the first one
+    # FIXME: Try them in order until 1 works?
+    # FIXME: Is this sorted in the right order?
+    srv_records = list(dns.resolver.resolve(f'_snapcast_control._tcp.{domain}', 'SRV'))
+    srv_records.sort(key=lambda i: i.weight)
+
+    return str(srv_records[0].target).rstrip('.'), srv_records[0].port
+
+
 def gen_argparser():
     """Generate the argparser and subparsers."""
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__)
     # FIXME: --help-all does not work without all other required arguments.
     #        I don't currently have any idea how to work around this.
     parser.add_argument('--help-all', action='store_true')
-    parser.add_argument('--host', default='music', type=str,
+    parser.add_argument('--host', default=None, type=str,
                         help="The snapserver host to control")
-    parser.add_argument('--port', default=1705, type=int,
+    parser.add_argument('--port', default=None, type=int,
                         help="The snapserver remote control port number. NOTE: http control not supported at this time")
 
     # Eah command group should be a separate subparser with its own arguments
@@ -296,7 +324,8 @@ if __name__ == '__main__':
 
     method = f"{params.pop('method_group')}.{params.pop('method')}"
 
-    with SnapController(params.pop('host'), params.pop('port')) as ctrl:
+    default_host, default_port = get_defaults_from_srv()
+    with SnapController(params.pop('host') or default_host, params.pop('port') or default_port) as ctrl:
         api_version = ctrl.run_command('Server.GetRPCVersion')
         if api_version != {'major': 2, 'minor': 0, 'patch': 0}:
             raise NotImplementedError("RPC API version mismatch")
