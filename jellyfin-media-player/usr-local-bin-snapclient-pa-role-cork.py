@@ -2,6 +2,10 @@
 """
 Watch for changes to pulseaudio sink inputs and silence snapcast accordingly.
 
+FIXME: If this is running on 2 systems in the same group then things could get confusing.
+       If both systems mute the room when playing a videos at the same time, then only 1 of them stops playing a video,
+       the room will be unmuted even though the other system is still playing a video.
+       This should somehow keep the room muted, but don't keep it unmuted.
 NOTE: Depends on module-dbus-protocol being loaded into PulseAudio
 """
 import argparse
