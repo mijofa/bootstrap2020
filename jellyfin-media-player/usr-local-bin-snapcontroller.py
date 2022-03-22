@@ -172,6 +172,7 @@ class SnapController(object):
         # This has only really been a problem for me with snapclient-pa-role-cork.py, not when running this by hand.
         # FIXME: Have a separate thread for recieving data and updating state variables accordingly.
         #        That thread could then send the 'result' values into a queue that is picked up here.
+        #        Doing so would also help snapclient-pa-role-cork with *keeping* the group muted when multiple devices disagree.
         for possible_result in data:
             if 'result' not in possible_result:
                 continue
