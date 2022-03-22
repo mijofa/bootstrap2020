@@ -5,16 +5,10 @@ After=pulseaudio.service snapclient.service
 PartOf=graphical-session.target
 
 [Service]
-# FIXME: If avahi is working properly then we shouldn't need SRV records at all
-# FIXME: This should be done in the Python, not here
-ExecStartPre=/bin/sh -c 'systemctl --user set-environment DOMAIN=$(resolvectl domain | sed "1d;s/[^:]*:\s//" | head -1)'
-ExecStartPre=/bin/sh -c 'systemctl --user set-environment SNAPCAST_CONTROL_HOST=$(/usr/lib/apt/apt-helper srv-lookup "_snapcast_control._tcp.$DOMAIN" | sort -n -k2,3 | head -1 | cut -f1)'
-ExecStartPre=/bin/sh -c 'systemctl --user set-environment SNAPCAST_CONTROL_PORT=$(/usr/lib/apt/apt-helper srv-lookup "_snapcast_control._tcp.$DOMAIN" | sort -n -k2,3 | head -1 | cut -f4)'
-
 # Python3 defaults to quite a large buffer for stdout/stderr.
 # This makes the journal significantly less useful for debugging because the log messages don't appear immediately.
 Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
-ExecStart=/usr/local/bin/snapclient-pa-role-cork.py --host $SNAPCAST_CONTROL_HOST --port $SNAPCAST_CONTROL_PORT video
+ExecStart=/usr/local/bin/snapclient-pa-role-cork.py video
 Restart=on-failure
 
 # There was a problem with it restarting too quickly.
