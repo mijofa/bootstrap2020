@@ -1,0 +1,55 @@
+# NOTE: This files needs to be readable by all so that the GUI user can actually send the necessary key signals
+[[protocols]]
+name = "TV_Samsung"
+protocol = "nec"
+variant = "necx"
+
+[protocols.scancodes]
+# Intentionally not a key symbol because I want to use this *only* for sending
+0x70702 = "STANDBY/ON"
+# FIXME: Just put every key in here, with their printed button labels
+0x70701 = "Source"
+0x70704 = "1"
+0x70705 = "2"
+0x70706 = "3"
+0x70708 = "4"
+0x70709 = "5"
+0x7070a = "6"
+0x7070c = "7"
+0x7070d = "8"
+0x7070e = "9"
+0x7072c = "TTX/MIX"
+0x70711 = "0"
+0x70713 = "PRE-CH"
+0x70707 = "VOL+"
+0x7070f = "Mute"
+0x70712 = "CH+"
+0x7076b = "CH. LIST"
+0x7070b = "VOL-"
+0x70779 = "Contents"  # Not sure on this one, has a weird symbol but pressing it brings up a "Contents home" menu
+0x70710 = "CH-"
+0x707bc = "Black right arrow"  # Doesn't seem to do anything
+0x707f3 = "Red square"  # Doesn't seem to do anything
+0x707f4 = "Blue line"  # Doesn't seem to do anything
+0x7071a = "MENU"
+0x70760 = "Up"
+0x7074f = "GUIDE"
+0x70765 = "Left"
+0x70768 = "Ok"
+0x70762 = "Right"
+0x70758 = "Return"  # Is a "back" button, not "enter" as keyboard keys tend to imply with this label
+0x70761 = "Down"
+0x7072d = "Exit"
+0x7076c = "Red A"  # Meant for TV stuff?
+0x70714 = "Green B"  # Meant for TV stuff?
+0x70715 = "Yellow C"  # Meant for TV stuff?
+0x70716 = "Blue D"  # Meant for TV stuff?
+0x70725 = "AD. SUBT"
+0x7071f = "INFO"
+0x7074b = "TOOLS"
+0x70745 = "Rewind"
+0x70747 = "Play"
+0x70748 = "FastForward"
+0x70749 = "Record"
+0x7074a = "Pause"
+0x70746 = "Stop"
