@@ -157,17 +157,28 @@ class SnapController(object):
 
         return data
 
-    def recv_data(self):
+    def recv_result(self):
         """Recv data as json."""
         raw_data = self._recv_all_rawdata()
-
         try:
-            data = json.loads(raw_data.decode().strip())
+            data = (json.loads(line) for line in raw_data.decode().split('\n'))
         except json.decoder.JSONDecodeError:
             print("Attempted to decode:", raw_data.decode(), file=sys.stderr)
             raise
 
-        return data
+        # The snapserver sends status updates every now and then, we don't care about those at all.
+        # This has only really been a problem for me with snapclient-pa-role-cork.py, not when running this by hand.
+        # FIXME: Have a separate thread for recieving data and updating state variables accordingly.
+        #        That thread could then send the 'result' values into a queue that is picked up here.
+        for possible_result in data:
+            if 'result' not in possible_result:
+                continue
+            else:
+                break
+        else:
+            raise Exception("No result recieved from Snapserver")
+
+        return possible_result
 
     def send_data(self, data):
         """Send data as json."""
@@ -220,7 +231,7 @@ class SnapController(object):
 
         self.send_data(data)
 
-        response = self.recv_data()
+        response = self.recv_result()
         assert response['id'] == data['id'], response
         self.last_command_id += 1  # Increment the ID for the next one
 
