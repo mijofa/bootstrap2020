@@ -1,0 +1,10 @@
+# NOTE: This files needs to be readable by all so that the GUI user can actually send the necessary key signals
+[[protocols]]
+name = "TV_Samsung"
+protocol = "nec"
+variant = "necx"
+
+[protocols.scancodes]
+# Intentionally not a key symbol because I want to use this *only* for sending
+0x70702 = "STANDBY/ON"
+# FIXME: Just put every key in here, with their printed button labels
