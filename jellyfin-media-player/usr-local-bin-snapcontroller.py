@@ -10,6 +10,7 @@ import json
 import pprint  # noqa: F401 "imported but unused"  # This is useful for debugging
 import socket
 import subprocess
+import sys
 import time
 
 import dns.resolver
@@ -160,7 +161,11 @@ class SnapController(object):
         """Recv data as json."""
         raw_data = self._recv_all_rawdata()
 
-        data = json.loads(raw_data.decode().strip())
+        try:
+            data = json.loads(raw_data.decode().strip())
+        except json.decoder.JSONDecodeError:
+            print("Attempted to decode:", raw_data.decode(), file=sys.stderr)
+            raise
 
         return data
 
@@ -171,7 +176,7 @@ class SnapController(object):
         self.sock.send(b'\r\n')
 
         # FIXME: Sockets have no 'flush' function, it takes a sec for the other end to respond
-        time.sleep(0.1)
+        time.sleep(0.25)
 
     def get_group_of_client(self, client_id):
         """Find the group that has the given client as a member."""
