@@ -190,7 +190,9 @@ class SnapController(object):
         self.sock.send(b'\r\n')
 
         # FIXME: Sockets have no 'flush' function, it takes a sec for the other end to respond
-        time.sleep(0.25)
+        # 0.1 was definitely not enough to recieve the response data, 0.25 was enough most of the time, but not quite, fuck it 0.5 will do.
+        # FIXME: Just keep reading response data until there's a '\n'.
+        time.sleep(0.5)
 
     def get_group_of_client(self, client_id):
         """Find the group that has the given client as a member."""
