@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 """Preload jellyfin-media-player with a Jellyfin server config."""
+import argparse
 import contextlib
 import json
 import os
 import pathlib
 import subprocess
-import sys
 import urllib.parse
 import urllib.request
 
@@ -59,15 +59,17 @@ def guess_base_url():
     return f"{jf_proto}://{jf_target}:{jf_port}"
 
 
-# The base URL of the Jellyfin server we're working with
-if not len(sys.argv) >= 2:
-    base_url = guess_base_url()
-    if base_url:
-        print("No base URL specified, using:", base_url)
-    else:
-        raise Exception("No base URL specified, and could not automatically determine via SRV records.")
-else:
-    base_url = sys.argv[1]
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('base_url', default=None, type=str, nargs='?',
+                    help="The base URL for the Jellyfin server (default: determined from SRV records)")
+# FIXME: The autologin part doesn't actually work currently
+parser.add_argument('--UserId', default=None, type=str,
+                    help="The UserId for autologin (default: no autologin) (requires --AccessToken and --deviceId2)")
+parser.add_argument('--AccessToken', default=None, type=str,
+                    help="The AccessToken for autologin (default: no autologin) (requires --UserId and --deviceId2)")
+args = parser.parse_args()
+
+base_url = args.base_url or guess_base_url()
 
 # Query the info from the Jellyfin server (similar to how the Chromecast does)
 with urllib.request.urlopen(urllib.parse.urljoin(base_url, "System/Info/Public")) as server_query:
@@ -82,6 +84,10 @@ jellyfin_credentials = {
             # NOTE: Only ManualAddress & ID are *required*, but I've got the rest, so might as well.
             "Name": server_info['ServerName'],
             "LocalAddress": server_info['LocalAddress'],
+            # Optional args for auto login if configured
+            # FIXME: Doesn't actually work yet
+            "UserId": args.UserId,
+            "AccessToken": args.AccessToken,
         },
     ],
 }
@@ -102,4 +108,8 @@ with contextlib.closing(plyvel.DB(os.fspath(local_storage_path / 'leveldb'), cre
     # I do this because it's easy to accdientally, or even habitually, hit "remember me" on login.
     # The whole point of this system is to be a shared TV player,
     # by leaving autologin disabled then I can easily "log out" by simply restarting the application.
-    leveldb.put(AUTOLOGIN_KEY, b'\x01false')
+    if args.UserId and args.AccessToken:
+        # But on some systems I may want to autologin when the credentials are supplied, so allow that too
+        leveldb.put(AUTOLOGIN_KEY, b'\x01true')
+    else:
+        leveldb.put(AUTOLOGIN_KEY, b'\x01false')
