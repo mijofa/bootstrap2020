@@ -36,6 +36,7 @@ def pa_array_to_dict(array):
 class PulseCorkHandler(object):
     """Handle D-Bus signals from PulseAudio."""
 
+    old_state = None
     mainloop = None
     known_stream_roles = {}
 
@@ -107,11 +108,16 @@ class PulseCorkHandler(object):
         """Handle the roles list and mute/unmute the Snapcast group accordingly."""
         snap_group_id = self.snapcontroller.get_group_of_client(self.snap_device_id)
         if any(role in self.known_stream_roles.values() for role in self.trigger_roles):
-            self.snapcontroller.run_command('Group.SetMute', {'id': snap_group_id, 'mute': True})
-            print("Muting", self.known_stream_roles)
+            new_state = True
         else:
-            self.snapcontroller.run_command('Group.SetMute', {'id': snap_group_id, 'mute': False})
-            print("Unmuting", self.known_stream_roles)
+            new_state = False
+
+        # Only change the server's state if we expect it to be changing from what we last set it to.
+        # This is to help workaround issues with multiple devices messing with the state at the same time.
+        if new_state != self.old_state:
+            self.old_state = new_state
+            self.snapcontroller.run_command('Group.SetMute', {'id': snap_group_id, 'mute': new_state})
+            print('Muting' if new_state else 'Unmuting', self.known_stream_roles)
 
     def exit(self):
         """Exit the main loop."""
