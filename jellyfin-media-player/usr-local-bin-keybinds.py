@@ -57,7 +57,7 @@ GLOBAL_EVENT_MAPPING = {
         evdev.ecodes.KEY_EXIT: lambda: subprocess.check_call(
             ['systemctl', '--user', 'restart', 'jellyfinmediaplayer']),
         evdev.ecodes.KEY_CLOSE: lambda: subprocess.check_call(
-            ['ir-ctl', '--keymap=/etc/rc_keymaps/TV_Samsung.toml', '--keycode=STANDBY/ON']),
+            ['ir-ctl', '--send=/etc/TV_power.ir']),
     },
 }
 
