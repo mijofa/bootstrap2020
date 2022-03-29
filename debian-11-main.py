@@ -61,6 +61,8 @@ group.add_argument('--host-port-for-boot-test-ssh', type=int, default=2022, meta
                    help='so you can run two of these at once')
 group.add_argument('--host-port-for-boot-test-vnc', type=int, default=5900, metavar='N',
                    help='so you can run two of these at once')
+group.add_argument('--host-port-for-boot-test-http', type=int, default=8000, metavar='N',
+                   help='so you can run two of these at once')
 parser.add_argument('--destdir', type=lambda s: pathlib.Path(s).resolve(),
                     default='/tmp/bootstrap2020/')
 parser.add_argument('--template', default='main',
@@ -80,6 +82,7 @@ parser.add_argument('--template', default='main',
                              'desktop-staff',
                              'desktop-staff-amc',
                              'desktop-staff-hcc',
+                             'server-nginx-cache',
                              ),
                     help=(
                         'main: small CLI image; '
@@ -90,6 +93,7 @@ parser.add_argument('--template', default='main',
                         'desktop: tweaked XFCE; '
                         'desktop-inmate: desktop w/ PrisonPC inmate/detainee stuff;'
                         'desktop-staff:  desktop w/ PrisonPC operational staff stuff;'
+                        'server-nginx-cache: reverse http proxy implementing a local cache;',
                         '*-{amc,hcc}-*: site-specific stuff.'
                     ))
 group = parser.add_argument_group('optimization')
@@ -502,6 +506,9 @@ with tempfile.TemporaryDirectory() as td:
             *(['--include=xfce4-terminal']
               if template_wants_GUI and not args.template.startswith('desktop-inmate') else [])]
            if args.backdoor_enable else []),
+         *(['--include=nginx python3-dnspython',
+            f'--essential-hook=tar-in {create_tarball("server-nginx-cache")} /']
+           if args.template == 'server-nginx-cache' else []),
          *([f'--customize-hook=echo bootstrap:{git_description} >$1/etc/debian_chroot',
             '--customize-hook=chroot $1 bash -i',
             '--customize-hook=rm -f $1/etc/debian_chroot']
@@ -668,6 +675,8 @@ if args.boot_test:
                 f'hostfwd=tcp::{args.host_port_for_boot_test_ssh}-:22',
                 *([f'hostfwd=tcp::{args.host_port_for_boot_test_vnc}-:5900']
                   if template_wants_PrisonPC else []),
+                *([f'hostfwd=tcp::{args.host_port_for_boot_test_http}-:80']
+                  if args.template == 'server-nginx-cache' else []),
                 *([f'smb={testdir}'] if have_smbd else []),
                 *([f'tftp={testdir}', 'bootfile=pxelinux.0']
                   if args.netboot_only else []),
