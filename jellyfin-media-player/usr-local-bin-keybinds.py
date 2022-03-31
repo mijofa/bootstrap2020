@@ -35,8 +35,8 @@ GLOBAL_EVENT_MAPPING = {
 
         evdev.ecodes.KEY_CHANNELUP: lambda: increment_snap_channel(+1),
         evdev.ecodes.KEY_CHANNELDOWN: lambda: increment_snap_channel(-1),
-        evdev.ecodes.KEY_MEDIA: lambda: increment_snap_channel(+1),
-        evdev.ecodes.KEY_SOUND: lambda: increment_snap_channel(-1),
+#        evdev.ecodes.KEY_MEDIA: lambda: increment_snap_channel(+1),
+#        evdev.ecodes.KEY_SOUND: lambda: increment_snap_channel(-1),
 
         evdev.ecodes.KEY_HELP: lambda: run_multiple(lambda: asyncio.ensure_future(send_to_inputSocket('KEY_INFO')),
                                                     show_time_notification),
@@ -47,7 +47,6 @@ GLOBAL_EVENT_MAPPING = {
         evdev.ecodes.KEY_RECORD: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_RECORD')),
         evdev.ecodes.KEY_ZOOM: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_ZOOM')),
         evdev.ecodes.KEY_SUBTITLE: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_SUBTITLE')),
-        evdev.ecodes.KEY_DASHBOARD: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_DASHBOARD')),
         evdev.ecodes.KEY_FAVORITES: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_FAVORITES')),
         # PrisonPC compatibliity
         evdev.ecodes.KEY_CONNECT: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_PLAYPAUSE')),  # PrisonPC did not plan
