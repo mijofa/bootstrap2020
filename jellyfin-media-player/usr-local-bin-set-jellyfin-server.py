@@ -147,6 +147,8 @@ with contextlib.closing(plyvel.DB(os.fspath(local_storage_path / 'leveldb'), cre
         # But on some systems I may want to autologin when the credentials are supplied, so allow that too
         print("Enabling autologin")
         leveldb.put(AUTOLOGIN_KEY, b'\x01true')
+        # FIXME: Constants have been used for other keys, do so with this one too
+        leveldb.put(f'_file://\x00\x01{args.UserId}-screensaver'.encode(), b'\x01backdropscreensaver')
     else:
         print("Disabling autologin")
         leveldb.put(AUTOLOGIN_KEY, b'\x01false')
