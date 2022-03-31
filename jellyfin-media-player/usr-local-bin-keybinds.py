@@ -11,6 +11,7 @@ import pathlib
 import socket
 import subprocess
 import sys
+import time
 import traceback
 
 import evdev
@@ -37,7 +38,10 @@ GLOBAL_EVENT_MAPPING = {
         evdev.ecodes.KEY_MEDIA: lambda: increment_snap_channel(+1),
         evdev.ecodes.KEY_SOUND: lambda: increment_snap_channel(-1),
 
-        evdev.ecodes.KEY_HELP: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_HELP')),
+        evdev.ecodes.KEY_HELP: lambda: run_multiple(lambda: asyncio.ensure_future(send_to_inputSocket('KEY_INFO')),
+                                                    show_time_notification),
+        evdev.ecodes.KEY_INFO: lambda: run_multiple(lambda: asyncio.ensure_future(send_to_inputSocket('KEY_INFO')),
+                                                    show_time_notification),
         evdev.ecodes.KEY_EPG: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_EPG')),
         evdev.ecodes.KEY_TV: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_TV')),
         evdev.ecodes.KEY_RECORD: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_RECORD')),
@@ -60,6 +64,22 @@ GLOBAL_EVENT_MAPPING = {
             ['ir-ctl', '--send=/etc/TV_power.ir']),
     },
 }
+
+
+def run_multiple(*args):
+    """Run every arg as it's own function."""
+    for f in args:
+        f()
+
+
+def show_time_notification():
+    """Popup a notification showing the current time."""
+    notif = Notify.Notification.new("Snapcast stream")
+    notif.set_property('summary', time.strftime('%I:%M %p'))
+    notif.set_timeout(NOTIFICATION_TIMEOUT)
+
+    notif.set_property('body', time.strftime('%d %b %Y'))
+    notif.show()
 
 
 def is_device_capable(dev_caps: dict, needed_caps: dict):
