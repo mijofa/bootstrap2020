@@ -15,7 +15,7 @@ import urllib.request
 import dns.resolver
 
 
-def get_top_SRV(SRV):
+def get_sorted_SRV(SRV):
     """Get the top SRV record for the given query."""
     # Python was doing some really weird & stupid things when trying to get the search domain.
     # So I gave up and called out to resolvectl instead
@@ -31,14 +31,24 @@ def get_top_SRV(SRV):
         if domain:
             break
 
-    # Get all SRV records and sort them by weight,
+    # Get all SRV records and sort them by priority,
     # then grab only the first one
     # FIXME: Try them in order until 1 works?
     # FIXME: Is this sorted in the right order?
     srv_records = list(dns.resolver.resolve(f'{SRV}.{domain}', 'SRV'))
-    srv_records.sort(key=lambda i: i.weight)
+    srv_records.sort(key=lambda i: i.priority)
 
-    return srv_records[0]
+    return srv_records
+
+
+def get_JF_info(base_url):
+    """Query the info directly from the Jellyfin server (similar to how the Chromecast does)."""
+    # FIXME: If the LocalAddress is missing we're supposed to use the ManualAddress,
+    #        but that could result in finding the server this is running on, which would be a problem.
+    with urllib.request.urlopen(urllib.parse.urljoin(base_url, "System/Info/Public")) as server_query:
+        data = json.load(server_query)
+        assert 'LocalAddress' in data, "LocalAddress missing from server info"
+        return data
 
 
 def guess_JF_base_url():
@@ -47,23 +57,30 @@ def guess_JF_base_url():
 
     FIXME: Does Jellyfin already use avahi? Can we use that instead of SRV records?
     """
-    srv_record = get_top_SRV('_jellyfin._tcp')
+    SRV_records = get_sorted_SRV('_jellyfin._tcp')
 
-    jf_port = srv_record.port
-    jf_target = str(srv_record.target).rstrip('.')
-    # If the port is a usual https port, then do https, otherwise http
-    # NOTE: Jellyfin defaults to 8920 for https
-    if jf_port in (443, 8920):
-        jf_proto = 'https'
-    else:
-        jf_proto = 'http'
+    for record in SRV_records:
+        jf_port = record.port
+        jf_target = str(record.target).rstrip('.')
+        # If the port is a usual https port, then do https, otherwise http
+        # NOTE: Jellyfin defaults to 8920 for https
+        if jf_port in (443, 8920):
+            jf_proto = 'https'
+        else:
+            jf_proto = 'http'
 
-    return f"{jf_proto}://{jf_target}:{jf_port}"
+        # If the server is uncontactable, or causes any issues getting the info we need,
+        # just move onto the next one.
+        try:
+            return get_JF_info(f"{jf_proto}://{jf_target}:{jf_port}")
+        except:  # noqa: E722
+            continue
 
 
 def guess_bootserver_url():
     """Query DNS for boot server."""
-    srv_record = get_top_SRV('_boothttp._tcp')
+    # FIXME: This should handle multiple responses in some way
+    srv_record = get_sorted_SRV('_boothttp._tcp')[0]
 
     port = srv_record.port
     target_IP = dns.resolver.resolve(srv_record.target)[0].address
@@ -85,11 +102,10 @@ parser.add_argument('--bootserver-base-url', default=None, type=argparse.FileTyp
                     help="Hostname for the bootserver (default: determined from SRV record '_boothttp._tcp...)")
 args = parser.parse_args()
 
-JF_base_url = args.base_url or guess_JF_base_url()
-
-# Query the info from the Jellyfin server (similar to how the Chromecast does)
-with urllib.request.urlopen(urllib.parse.urljoin(JF_base_url, "System/Info/Public")) as server_query:
-    server_info = json.load(server_query)
+if args.base_url:
+    server_info = get_JF_info(args.base_url)
+else:
+    server_info = guess_JF_base_url()
 
 # FIXME: What if this returns an IPv6 address, will it properly quote it with square braces as nginx needs?
 print('set $jellyfin_base_url', server_info['LocalAddress'], ';', file=args.nginx_snippet)
