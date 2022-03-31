@@ -30,7 +30,6 @@
     "KEY_RECORD": "record",
     "KEY_ZOOM": "changezoom",
     "KEY_SUBTITLE": "changesubtitletrack",
-    "KEY_DASHBOARD": "changesubtitletrack",
     "KEY_FAVORITES": "favorites"
   }
 }
