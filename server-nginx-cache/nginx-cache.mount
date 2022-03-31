@@ -1,0 +1,11 @@
+[Mount]
+# It seems systemd v247 doesn't understand libblkid "LABEL=x" notation?
+#What=LABEL=nginx_cache
+What=/dev/disk/by-label/nginx_cache
+Where=/var/cache/nginx
+Type=ext4
+Options=nodev,nosuid,noexec
+#DirectoryMode=0
+
+[Install]
+WantedBy=remote-fs.target
