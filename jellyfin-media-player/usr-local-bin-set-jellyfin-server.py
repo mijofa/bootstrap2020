@@ -83,7 +83,9 @@ jellyfin_credentials = {
             "Id": server_info['Id'],
             # NOTE: Only ManualAddress & ID are *required*, but I've got the rest, so might as well.
             "Name": server_info['ServerName'],
-            "LocalAddress": server_info['LocalAddress'],
+            # When running behind a caching server, the LocalAddress will bypass the cache.
+            # My solution is to make the caching server remove the LocalAddress, in which case this code should not crash.
+            "LocalAddress": server_info['LocalAddress'] if "LocalAddress" in server_info else base_url,
             # Optional args for auto login if configured
             # FIXME: Doesn't actually work yet
             "UserId": args.UserId,
