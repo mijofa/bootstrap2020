@@ -506,7 +506,7 @@ with tempfile.TemporaryDirectory() as td:
             *(['--include=xfce4-terminal']
               if template_wants_GUI and not args.template.startswith('desktop-inmate') else [])]
            if args.backdoor_enable else []),
-         *(['--include=nginx python3-dnspython',
+         *(['--include=nginx libnginx-mod-http-subs-filter python3-dnspython',
             f'--essential-hook=tar-in {create_tarball("server-nginx-cache")} /']
            if args.template == 'server-nginx-cache' else []),
          *([f'--customize-hook=echo bootstrap:{git_description} >$1/etc/debian_chroot',
