@@ -10,7 +10,7 @@ PartOf=graphical-session.target
 Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
 # NOTE: video is the only one that should happen on these actual SOEs,
 #       but I use it on my desktop too and wanted the extra roles without creating an entire separate .service file.
-ExecStart=/usr/local/bin/snapclient-pa-role-cork.py video game phone no_role
+ExecStart=/usr/local/bin/PulseAudio-systemd-roles.py video game phone no_role
 Restart=on-failure
 
 # There was a problem with it restarting too quickly.
