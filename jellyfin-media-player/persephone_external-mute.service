@@ -1,0 +1,17 @@
+[Unit]
+Description=external mute state handler
+Wants=pulseaudio.service
+After=pulseaudio.service
+PartOf=graphical-session.target
+
+ConditionHost=persephone
+
+[Service]
+# Python3 defaults to quite a large buffer for stdout/stderr.
+# This makes the journal significantly less useful for debugging because the log messages don't appear immediately.
+Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
+ExecStart=/usr/local/bin/external-mute.py
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target
