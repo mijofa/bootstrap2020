@@ -1,5 +1,5 @@
 [Unit]
-Description=Snapcast equivalent of PulseAudio's "module-role-cork"
+Description=Equivalent of PulseAudio's "module-role-cork" that stop/starts a systemd target instead
 Wants=pulseaudio.service
 After=pulseaudio.service snapclient.service
 PartOf=graphical-session.target
@@ -8,7 +8,7 @@ PartOf=graphical-session.target
 # Python3 defaults to quite a large buffer for stdout/stderr.
 # This makes the journal significantly less useful for debugging because the log messages don't appear immediately.
 Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
-# NOTE: video is the only one that should happen on these actual SOEs,
+# NOTE: video is the only one that should happen on these SOEs,
 #       but I use it on my desktop too and wanted the extra roles without creating an entire separate .service file.
 ExecStart=/usr/local/bin/PulseAudio-systemd-roles.py video game phone no_role
 Restart=on-failure

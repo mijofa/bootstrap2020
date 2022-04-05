@@ -1,0 +1,19 @@
+[Unit]
+Description=corking the snapclient group during media playback
+BindsTo=media-playback.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+# Python3 defaults to quite a large buffer for stdout/stderr.
+# This makes the journal significantly less useful for debugging because the log messages don't appear immediately.
+Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
+
+ExecStart=/usr/local/bin/snapcontroller.py Group SetMute --mute
+ExecStop=/usr/local/bin/snapcontroller.py Group SetMute
+
+Restart=on-failure
+
+[Install]
+WantedBy=media-playback.target
