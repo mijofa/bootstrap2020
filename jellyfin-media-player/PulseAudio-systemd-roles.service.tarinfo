@@ -1,2 +1,2 @@
-{"name": "etc/systemd/user/snapclient-pa-role-cork.service",
+{"name": "etc/systemd/user/PulseAudio-systemd-roles.service",
  "mode": 292}
