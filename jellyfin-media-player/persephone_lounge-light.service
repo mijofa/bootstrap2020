@@ -1,0 +1,17 @@
+[Unit]
+Description=dim the lounge room light during media playback
+BindsTo=media-playback.target
+
+ConditionHost=persephone
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+ExecStart=curl --silent "http://mijofa-lounge-light/cm" --data "cmnd=dimmer 33"
+ExecStop=curl  --silent "http://mijofa-lounge-light/cm" --data "cmnd=dimmer 100"
+
+Restart=on-failure
+
+[Install]
+WantedBy=media-playback.target
