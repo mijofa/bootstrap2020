@@ -24,6 +24,7 @@ API_CMD_ARGS = {
         },
         'COMMANDS': {
             "GetStatus": {'help': "Query status & state info"},
+            # FIXME: Add some incrementing options
             "SetVolume": {'help': "Set the volume & mute state",
                           'params': {"--muted": {'action': 'store_true'}, "--percent": {'type': int, 'required': True}}},
             "SetLatency": {'help': "FIXME",
@@ -39,8 +40,9 @@ API_CMD_ARGS = {
             "GetStatus": {'help': "Query status & state info"},
             "SetMute": {'help': "Set mute state (defaults to unmute)",
                         # FIXME: This one is messy
-                        # FIXME: Add a custom 'toggle mute' command
-                        'params': {'--mute': {'action': 'store_true', 'help': "Set mute instead of unmute"}}},
+                        'params': {'--mute': {'action': 'store_true', 'help': "Set mute instead of unmute"},
+                                   # NOTE: toggle is not supported by the API, I've added this one myself
+                                   '--toggle': {'action': 'store_true', 'help': "Toggle the mute state"}}},
             "SetStream": {'help': "Tune this group into a specific stream",
                           'params': {'--stream_id': {'help': "ID of the stream to tune in to", 'type': str, 'required': True}}},
             "SetClients": {'help': "Set what clients are part of this group",
@@ -190,7 +192,8 @@ class SnapController(object):
         self.sock.send(b'\r\n')
 
         # FIXME: Sockets have no 'flush' function, it takes a sec for the other end to respond
-        # 0.1 was definitely not enough to recieve the response data, 0.25 was enough most of the time, but not quite, fuck it 0.5 will do.
+        # 0.1 was definitely not enough to recieve the response data, 0.25 was enough most of the time, but not quite.
+        # Fuck it 0.5 will do.
         # FIXME: Just keep reading response data until there's a '\n'.
         time.sleep(0.5)
 
@@ -211,8 +214,22 @@ class SnapController(object):
         server_status = self.run_command('Server.GetStatus')
         return sorted([s['id'] for s in server_status['server']['streams']])
 
+    def _toggle_mute(self, params: dict):
+        """Toggle the mute state for the given group."""
+        assert 'toggle' in params and params.pop('toggle'), "Toggle function called without --toggle"
+        assert not params.pop('mute'), "--toggle and --mute are mutually exclusive"
+
+        # Sending the params here to ensure the group ID gets goes through as well
+        params['mute'] = not self.run_command('Group.GetStatus', params)['group']['muted']
+
+        return self.run_command('Group.SetMute', params)
+
     def run_command(self, method: str, params: dict = {}):
         """Send the specific command & params."""
+        if method == 'Group.SetMute' and params.get('toggle'):
+            # The main API does not have a way to toggle the mute state, so I've carved that off into it's own function
+            return self._toggle_mute(params)
+
         # FIXME: I believe this ID here is to ensure the result string we recieve is specifically for this command.
         #        So theoretically I could make this whole asyncio or threading friendly by recieving responses in separate a thread
         #        then using the ID to map it back to required run_command function to return it to the caller
