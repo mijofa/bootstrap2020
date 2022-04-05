@@ -616,6 +616,7 @@ with tempfile.TemporaryDirectory() as td:
             '--include=avahi-daemon',  # Dependency of snapclient missing in control file
 
             '--include=python3-systemd',  # Used in some of my .py systemd units
+            '--include=curl',  # Used in persephone_lounge-light
 
             '--include=wlr-randr',  # Wayland xrandr. Useful for debugging
             '--include=ydotool',  # Wayland xdotool, needed only to hide the mouse in the bottom-right  FIXME: jellyfin-media-player or phoc should handle this
