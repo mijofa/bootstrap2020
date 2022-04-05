@@ -1,0 +1,4 @@
+# This target indicates that a non-background media is playing,
+# implying that the background media should be muted
+[Unit]
+Description=media playback
