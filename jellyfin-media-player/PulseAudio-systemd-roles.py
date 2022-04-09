@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Watch for changes to pulseaudio sink inputs and silence snapcast accordingly.
+Watch for changes to pulseaudio sink inputs and start/stop systemd targets accordingly.
 
 FIXME: If this is running on 2 systems in the same group then things could get confusing.
        If both systems mute the room when playing a videos at the same time, then only 1 of them stops playing a video,
@@ -62,19 +62,24 @@ class PulseCorkHandler(object):
     mainloop = None
     known_stream_roles = {}
 
-    def __init__(self, trigger_roles: list, systemd_target_name, ignore_filter_roles=True, mainloop=None):
+    def __init__(self, trigger_roles: list,
+                 playback_target_name: str, muted_target_name: str,
+                 ignore_filter_roles=True, mainloop=None):
         """Set up D-Bus listeners."""
         if mainloop:
             self.mainloop = mainloop
 
         self.trigger_roles = trigger_roles
         self.ignore_filter_roles = ignore_filter_roles
-        self.systemd_target_name = systemd_target_name
+        self.playback_target_name = playback_target_name
+        self.muted_target_name = muted_target_name
 
         session_bus = dbus.SessionBus()
 
         self.pulse_bus = get_PA_bus(session_bus)
         self.pulse_core = self.pulse_bus.get_object(object_path='/org/pulseaudio/core1')
+
+        # for media-playback.target
         self.pulse_core.ListenForSignal('org.PulseAudio.Core1.NewPlaybackStream',
                                         dbus.Array(signature='o'),
                                         dbus_interface='org.PulseAudio.Core1')
@@ -84,12 +89,25 @@ class PulseCorkHandler(object):
         self.pulse_bus.add_signal_receiver(self._NewPlaybackStream, 'NewPlaybackStream')
         self.pulse_bus.add_signal_receiver(self._PlaybackStreamRemoved, 'PlaybackStreamRemoved')
 
+        # for volume-mute.target
+        self.pulse_core.ListenForSignal('org.PulseAudio.Core1.Device.MuteUpdated',
+                                        dbus.Array(signature='o'),
+                                        dbus_interface='org.PulseAudio.Core1')
+        self.pulse_bus.add_signal_receiver(self._MuteUpdated, 'MuteUpdated')
+
+        # for volume-percent@[...].target
+
         systemd1 = session_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
         self.systemd1_manager = dbus.Interface(systemd1, 'org.freedesktop.systemd1.Manager')
 
         # Gotta set the starting volume & mute states
         for stream_path in self.pulse_core.Get("org.PulseAudio.Core1", "PlaybackStreams"):
             self._NewPlaybackStream(stream_path)
+
+        # True mute if *any* sink is muted
+        self._MuteUpdated(
+            bool(max([self.pulse_bus.get_object("org.PulseAudio.Core1.Device", sink).Get("org.PulseAudio.Core1.Device", "Mute")
+                      for sink in self.pulse_core.Get("org.PulseAudio.Core1", "Sinks")])))
 
     def _NewPlaybackStream(self, stream_path):
         stream = self.pulse_bus.get_object("org.PulseAudio.Core1.PlaybackStream", stream_path)
@@ -127,11 +145,19 @@ class PulseCorkHandler(object):
         # Systemd makes sure we can't stop/start something that is already in that state
         # FIXME: What does 'fail' mean here?
         if new_state:
-            print('Starting. Current streams:', self.known_stream_roles)
-            self.systemd1_manager.StartUnit(self.systemd_target_name, 'fail')
+            print('Starting media-playback. Current streams:', self.known_stream_roles)
+            self.systemd1_manager.StartUnit(self.playback_target_name, 'fail')
         else:
-            print('Stopping. Current streams:', self.known_stream_roles)
-            self.systemd1_manager.StopUnit(self.systemd_target_name, 'fail')
+            print('Stopping media-playback. Current streams:', self.known_stream_roles)
+            self.systemd1_manager.StopUnit(self.playback_target_name, 'fail')
+
+    def _MuteUpdated(self, muted):
+        if muted:
+            print("Muted audio")
+            self.systemd1_manager.StartUnit(self.muted_target_name, 'fail')
+        else:
+            print("Unmuted audio")
+            self.systemd1_manager.StopUnit(self.muted_target_name, 'fail')
 
     def exit(self):
         """Exit the main loop."""
@@ -143,8 +169,10 @@ class PulseCorkHandler(object):
 
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--systemd-target', default='media-playback.target', type=str,
-                    help="The name of the systemd target we'll be stopping/starting (default: 'media-playback.target'")
+parser.add_argument('--playback-target', default='media-playback.target', type=str,
+                    help="The name of the systemd target for media playback status (default: 'media-playback.target'")
+parser.add_argument('--muted-target', default='audio-muted.target', type=str,
+                    help="The name of the systemd target for audio mute status (default: 'audio-muted.target'")
 parser.add_argument('trigger_roles', nargs='+', type=str)
 args = parser.parse_args()
 
@@ -153,7 +181,8 @@ mainloop = GLib.MainLoop()
 
 # FIXME: Use SRV records or something instead of just hardcoding the snapserver details in here
 pulse = PulseCorkHandler(trigger_roles=args.trigger_roles,
-                         systemd_target_name=args.systemd_target,
+                         playback_target_name=args.playback_target,
+                         muted_target_name=args.muted_target,
                          mainloop=mainloop)
 
 systemd.daemon.notify('READY=1')
