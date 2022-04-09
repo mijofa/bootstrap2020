@@ -8,7 +8,6 @@ ConditionHost=persephone
 
 [Service]
 Type=oneshot
-ExecStart=ln -sfv /etc/pulse/persephone_match.table /etc/pulse/match.table
 ExecStart=ln -sfv /etc/systemd/user/persephone_jellyfinmediaplayer.service.d /etc/systemd/user/jellyfinmediaplayer.service.d
 # NOTE: This runs before phoc, so the user's sytemd daemon shouldn't need reloading... But if it does, this *should* do the trick:
 # ExecStartPost=runuser -l jellyfinuser -c 'systemctl --user daemon-reload'
