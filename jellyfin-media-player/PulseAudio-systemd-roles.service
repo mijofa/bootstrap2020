@@ -2,7 +2,7 @@
 Description=Equivalent of PulseAudio's "module-role-cork" that stop/starts a systemd target instead
 Wants=pulseaudio.service
 After=pulseaudio.service snapclient.service
-PartOf=graphical-session.target
+PartOf=pulseaudio.service
 
 [Service]
 # Python3 defaults to quite a large buffer for stdout/stderr.
