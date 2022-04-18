@@ -573,6 +573,8 @@ with tempfile.TemporaryDirectory() as td:
             '    intel-media-va-driver-non-free',  # Intel, non-free, 2017+
             '--include=ir-keytable',   # infrared TV remote control
 
+            '--include=systemd-timesyncd',  # Why isn't this part of the base SOE?
+
             # Having hardware support issues, let's just throw some firmware in and see if it helps
             # UPDATE: It did not, but nothing got worse either
             '--include=firmware-linux-free firmware-linux firmware-linux-nonfree',  # Lots of generic firmware stuff, normally helps
