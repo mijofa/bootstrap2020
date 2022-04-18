@@ -99,6 +99,6 @@ if __name__ == '__main__':
         for stream in get_snapclient_streams(pulse_bus, pulse_core):
             stream.Set("org.PulseAudio.Core1.Stream", "Mute",
                        dbus.Boolean(args.mute, variant_level=1))
-    if args.volume is not None:
-        sink.Set("org.PulseAudio.Core1.Device", "Volume",
-                 dbus.Array((convert_decimal_to_pa(args.volume),), variant_level=1))
+#    if args.volume is not None:
+#        sink.Set("org.PulseAudio.Core1.Device", "Volume",
+#                 dbus.Array((convert_decimal_to_pa(args.volume),), variant_level=1))
