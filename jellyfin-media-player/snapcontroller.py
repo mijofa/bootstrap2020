@@ -165,7 +165,7 @@ class SnapController(object):
         """Recv data as json."""
         raw_data = self._recv_all_rawdata()
         try:
-            data = (json.loads(line) for line in raw_data.decode().split('\n'))
+            data = (json.loads(line) for line in raw_data.decode().split('\n') if line)
         except json.decoder.JSONDecodeError:
             print("Attempted to decode:", raw_data.decode(), file=sys.stderr)
             raise
@@ -176,7 +176,7 @@ class SnapController(object):
         #        That thread could then send the 'result' values into a queue that is picked up here.
         #        Doing so would also help snapclient-pa-role-cork with *keeping* the group muted when multiple devices disagree.
         for possible_result in data:
-            if 'result' not in possible_result:
+            if 'result' not in possible_result and 'error' not in possible_result:
                 continue
             else:
                 break
