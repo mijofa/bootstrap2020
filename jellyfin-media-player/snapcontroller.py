@@ -38,6 +38,11 @@ API_CMD_ARGS = {
         },
         'COMMANDS': {
             "GetStatus": {'help': "Query status & state info"},
+            "SetVolume": {'help': "Set the volume of every client for the given group.",
+                          # NOTE: This one is not actually supported by the Snapcast API, I've added it myself.
+                          # NOTE: The Android client does some magic to keep the client's separate volumes equally balanced,
+                          #       that's complex and annoying, so I haven't bothered.
+                          'params': {'--percent': {'type': int, 'required': True}}},
             "SetMute": {'help': "Set mute state (defaults to unmute)",
                         # FIXME: This one is messy
                         'params': {'--mute': {'action': 'store_true', 'help': "Set mute instead of unmute"},
@@ -224,11 +229,31 @@ class SnapController(object):
 
         return self.run_command('Group.SetMute', params)
 
+    def _group_setvolume(self, group_params: dict):
+        """
+        Set the volume for every client in a group.
+
+        Does not support --mute because Groups already have a SetMute method.
+        """
+        assert 'percent' in group_params
+
+        group_status = self.run_command(method='Group.GetStatus', params={'id': group_params['id']})['group']
+        for client in group_status['clients']:
+            client['config'].update(self.run_command(method='Client.SetVolume',
+                                                     params={'id': client['id'],
+                                                             'percent': group_params['percent'],
+                                                             # Don't change mute state
+                                                             'muted': client['config']['volume']['muted']}))
+
+        return group_status
+
     def run_command(self, method: str, params: dict = {}):
         """Send the specific command & params."""
         if method == 'Group.SetMute' and params.get('toggle'):
             # The main API does not have a way to toggle the mute state, so I've carved that off into it's own function
             return self._toggle_mute(params)
+        elif method == 'Group.SetVolume':
+            return self._group_setvolume(params)
 
         # FIXME: I believe this ID here is to ensure the result string we recieve is specifically for this command.
         #        So theoretically I could make this whole asyncio or threading friendly by recieving responses in separate a thread
