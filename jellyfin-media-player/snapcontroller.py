@@ -245,11 +245,12 @@ class SnapController(object):
                                             'muted': data['params'].pop('muted')}
 
             for k, v in data['params'].items():
-                if k == 'id':
-                    if v == '[local mac address]':
-                        data['params'][k] = get_physical_mac()
-                    elif v == "[local machine's group]":
-                        data['params'][k] = self.get_group_of_client(get_physical_mac())
+                if v == '[local mac address]':
+                    assert k == 'id'
+                    data['params'][k] = get_physical_mac()
+                elif v == "[local machine's group]":
+                    assert k == 'id'
+                    data['params'][k] = self.get_group_of_client(get_physical_mac())
 
         self.send_data(data)
 
