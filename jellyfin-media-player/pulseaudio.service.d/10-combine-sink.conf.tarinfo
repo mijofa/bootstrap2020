@@ -1,0 +1,2 @@
+{"name": "etc/systemd/user/pulseaudio.service.d/10-combine-sink.conf",
+ "mode": 292}
