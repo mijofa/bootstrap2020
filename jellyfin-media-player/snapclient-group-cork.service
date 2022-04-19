@@ -1,6 +1,6 @@
 [Unit]
 Description=corking the snapclient group during media playback
-BindsTo=media-playback.target
+StopWhenUnneeded=true
 
 [Service]
 Type=oneshot
@@ -10,10 +10,17 @@ RemainAfterExit=true
 # This makes the journal significantly less useful for debugging because the log messages don't appear immediately.
 Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
 
-ExecStart=/usr/local/bin/snapcontroller.py Group SetMute --mute
-ExecStop=/usr/local/bin/snapcontroller.py Group SetMute
+# Mute the local snapclient audio before communicating with the server at all.
+# Because muting the local music is a higher priority and the server communication may cause delays.
+ExecStartPre=snapvol.py --mute true
+
+ExecStart=snapcontroller.py Group SetMute --mute
+ExecStop=snapcontroller.py Group SetMute
 
 Restart=on-failure
 
 [Install]
+# Mute group when Jellyfin media is playing
 WantedBy=media-playback.target
+# Mute group when PulseAudio is manually muted
+WantedBy=audio-muted.target
