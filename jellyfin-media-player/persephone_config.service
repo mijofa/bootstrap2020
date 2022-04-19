@@ -8,6 +8,7 @@ ConditionHost=persephone
 
 [Service]
 Type=oneshot
+ExecStart=rm -fv /etc/systemd/user/pulseaudio.service.d/20-role-cork.conf
 ExecStart=ln -sfv /etc/pulse/persephone_match.table /etc/pulse/match.table
 ExecStart=ln -sfv /etc/systemd/user/persephone_snapclient.service.d /etc/systemd/user/snapclient.service.d
 ExecStart=ln -sfv /etc/systemd/user/persephone_jellyfinmediaplayer.service.d /etc/systemd/user/jellyfinmediaplayer.service.d
