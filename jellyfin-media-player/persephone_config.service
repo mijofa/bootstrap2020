@@ -8,10 +8,17 @@ ConditionHost=persephone
 
 [Service]
 Type=oneshot
+# I do role corking in my own custom way that is still in development
 ExecStart=rm -fv /etc/systemd/user/pulseaudio.service.d/20-role-cork.conf
-ExecStart=ln -sfv /etc/pulse/persephone_match.table /etc/pulse/match.table
+
+# systemd doesn't support globbing in the exec args.
+# Instead of calling out to 'sh -c' or similar, I'll just make find do it.
+ExecStart=find /etc/systemd/user/persephone_pulseaudio.service.d/ -maxdepth 1 -type f -exec ln -sfv "{}" /etc/systemd/user/pulseaudio.service.d/ \;
+# ExecStart=ln -sfv /etc/pulse/persephone_match.table /etc/pulse/match.table
+
 ExecStart=ln -sfv /etc/systemd/user/persephone_snapclient.service.d /etc/systemd/user/snapclient.service.d
 ExecStart=ln -sfv /etc/systemd/user/persephone_jellyfinmediaplayer.service.d /etc/systemd/user/jellyfinmediaplayer.service.d
+
 # NOTE: This runs before phoc, so the user's sytemd daemon shouldn't need reloading... But if it does, this *should* do the trick:
 # ExecStartPost=runuser -l jellyfinuser -c 'systemctl --user daemon-reload'
 
