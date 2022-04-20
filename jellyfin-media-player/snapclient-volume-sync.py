@@ -43,7 +43,7 @@ def pa_array_to_dict(array):
     return {str(k): bytes(b for b in v).strip(b'\x00').decode() for k, v in array.items()}
 
 
-def get_PA_bus():
+def get_PA_bus(session_bus=None):
     """
     Get the address for PA's dbus session.
 
@@ -53,7 +53,10 @@ def get_PA_bus():
     if 'PULSE_DBUS_SERVER' in os.environ:
         address = os.environ['PULSE_DBUS_SERVER']
     else:
-        bus = dbus.SessionBus()
+        if session_bus:
+            bus = session_bus
+        else:
+            bus = dbus.SessionBus()
         server_lookup = bus.get_object("org.PulseAudio1", "/org/pulseaudio/server_lookup1")
         address = server_lookup.Get("org.PulseAudio.ServerLookup1", "Address",
                                     dbus_interface="org.freedesktop.DBus.Properties")
@@ -78,11 +81,8 @@ class PulseSnapgroupHandler(object):
         self.pulse_bus = get_PA_bus()
         self.pulse_core = self.pulse_bus.get_object(object_path='/org/pulseaudio/core1')
 
-        # mute state
-        self.pulse_core.ListenForSignal('org.PulseAudio.Core1.Device.MuteUpdated',
-                                        dbus.Array(signature='o'),
-                                        dbus_interface='org.PulseAudio.Core1')
-        self.pulse_bus.add_signal_receiver(self._MuteUpdated, 'MuteUpdated')
+        # NOTE: Syncing of mute state is handled in snapclient-group-cork.service
+
         # volume percentage
         self.pulse_core.ListenForSignal('org.PulseAudio.Core1.Device.VolumeUpdated',
                                         dbus.Array(signature='o'),
@@ -92,20 +92,7 @@ class PulseSnapgroupHandler(object):
         # Gotta set the starting volume & mute states from the default sink
         sink = self.pulse_bus.get_object("org.PulseAudio.Core1.Device",
                                          self.pulse_core.Get("org.PulseAudio.Core1", "FallbackSink"))
-        self._MuteUpdated(sink.Get("org.PulseAudio.Core1.Device", "Mute"))
         self._VolumeUpdated(sink.Get("org.PulseAudio.Core1.Device", "Volume"))
-
-    def _MuteUpdated(self, muted):
-        if muted:
-            print("Muting audio in snapclient")
-            self.snap_conn.run_command(method='Group.SetMute',
-                                       params={'id': self.snap_conn.get_group_of_client(self.snap_client_id),
-                                               'mute': True})
-        else:
-            print("Unmuting audio in snapclient")
-            self.snap_conn.run_command(method='Group.SetMute',
-                                       params={'id': self.snap_conn.get_group_of_client(self.snap_client_id),
-                                               'mute': False})
 
     def _VolumeUpdated(self, unused_volumes):
         # Because this function can take a while to finish, it will sometimes get triggered multiple times while already running.
