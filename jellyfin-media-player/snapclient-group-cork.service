@@ -12,7 +12,7 @@ Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
 
 # Mute the local snapclient audio before communicating with the server at all.
 # Because muting the local music is a higher priority and the server communication may cause delays.
-ExecStartPre=snapvol.py --mute true
+ExecStartPre=-snapvol.py --mute true
 
 ExecStart=snapcontroller.py Group SetMute --mute
 ExecStop=snapcontroller.py Group SetMute
