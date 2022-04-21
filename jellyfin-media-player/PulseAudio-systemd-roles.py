@@ -93,7 +93,7 @@ class PulseCorkHandler(object):
         self.pulse_core.ListenForSignal('org.PulseAudio.Core1.Device.MuteUpdated',
                                         dbus.Array(signature='o'),
                                         dbus_interface='org.PulseAudio.Core1')
-        self.pulse_bus.add_signal_receiver(self._MuteUpdated, 'MuteUpdated')
+        self.pulse_bus.add_signal_receiver(self._MuteUpdated, 'MuteUpdated', path_keyword='device_path')
 
         # for volume-percent@[...].target
 
@@ -143,7 +143,6 @@ class PulseCorkHandler(object):
             new_state = False
 
         # Systemd makes sure we can't stop/start something that is already in that state
-        # FIXME: What does 'fail' mean here?
         if new_state:
             print('Starting media-playback. Current streams:', self.known_stream_roles)
             self.systemd1_manager.StartUnit(self.playback_target_name, 'fail')
@@ -151,13 +150,17 @@ class PulseCorkHandler(object):
             print('Stopping media-playback. Current streams:', self.known_stream_roles)
             self.systemd1_manager.StopUnit(self.playback_target_name, 'fail')
 
-    def _MuteUpdated(self, muted):
+    def _MuteUpdated(self, muted, device_path=None):
+        if device_path is not None and device_path.rpartition('/')[-1].startswith('source'):
+            print("Mute state changed for PA source device. Ignoring.")
+            return
+
         if muted:
             print("Muted audio")
-            self.systemd1_manager.StartUnit(self.muted_target_name, 'fail')
+            self.systemd1_manager.StartUnit(self.muted_target_name, 'replace')
         else:
             print("Unmuted audio")
-            self.systemd1_manager.StopUnit(self.muted_target_name, 'fail')
+            self.systemd1_manager.StopUnit(self.muted_target_name, 'replace')
 
     def exit(self):
         """Exit the main loop."""
