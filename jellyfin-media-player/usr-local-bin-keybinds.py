@@ -35,8 +35,8 @@ GLOBAL_EVENT_MAPPING = {
 
         evdev.ecodes.KEY_CHANNELUP: lambda: increment_snap_channel(+1),
         evdev.ecodes.KEY_CHANNELDOWN: lambda: increment_snap_channel(-1),
-#        evdev.ecodes.KEY_MEDIA: lambda: increment_snap_channel(+1),
-#        evdev.ecodes.KEY_SOUND: lambda: increment_snap_channel(-1),
+        # evdev.ecodes.KEY_MEDIA: lambda: increment_snap_channel(+1),
+        # evdev.ecodes.KEY_SOUND: lambda: increment_snap_channel(-1),
 
         evdev.ecodes.KEY_HELP: lambda: run_multiple(lambda: asyncio.ensure_future(send_to_inputSocket('KEY_INFO')),
                                                     show_time_notification),
