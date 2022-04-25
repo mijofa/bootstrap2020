@@ -1,8 +1,9 @@
 [Unit]
 Description=Notification handler for PulseAudio volume changes
 Wants=pulseaudio.service
-After=pulseaudio.service
+After=pulseaudio.service jellyfinmediaplayer.service
 PartOf=graphical-session.target
+BindsTo=graphical-session.target
 
 [Service]
 # Python3 defaults to quite a large buffer for stdout/stderr.
