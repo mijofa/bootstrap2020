@@ -130,7 +130,7 @@ class SnapException(Exception):
 class SnapController(object):
     """Snapserver controller."""
 
-    last_command_id = 0
+    last_command_id = 42  # Might make more sense to start from 0, but it helped with debugging to start higher
 
     def __init__(self, host: str = None, port: int = None):
         """Initialise the socket connections."""
@@ -149,31 +149,32 @@ class SnapController(object):
 
     def _recv_all_rawdata(self, blocking: bool = True, chunksize: int = 1024):
         """Keep recieving data until there's no more to recieve."""
-        blocked = True
-        while blocked:
-            try:
-                data = self.sock.recv(chunksize)
-            except BlockingIOError:
-                if blocking:
-                    blocked = True
-                else:
-                    blocked = False
-            else:
-                blocked = False
-
-        if len(data) == chunksize:
-            data += self._recv_all_rawdata(blocking=False, chunksize=chunksize)
+        start_time = time.monotonic()
+        blocked = 0
+        data = b''
+        # FIXME: Maximum run time is 10s, that's a lot.
+        while not data.endswith(b'}\r\n') and time.monotonic() < (start_time + 10):
+            while blocked <= 1:
+                try:
+                    data += self.sock.recv(chunksize)
+                except BlockingIOError:
+                    time.sleep(0.25)
+                    blocked += 1
 
         return data
 
-    def recv_result(self):
+    def recv_result(self, result_id=None):
         """Recv data as json."""
         raw_data = self._recv_all_rawdata()
-        try:
-            data = (json.loads(line) for line in raw_data.decode().split('\n') if line)
-        except json.decoder.JSONDecodeError:
-            print("Attempted to decode:", raw_data.decode(), file=sys.stderr)
-            raise
+        data = []
+        for line in raw_data.decode().split('\n'):
+            if line and line.endswith('\r'):
+                line = line.strip()
+                try:
+                    data.append(json.loads(line))
+                except json.decoderJSONDecodeError:
+                    print("Attempted to decode:", line, file=sys.stderr)
+                    print("Continuing with what we've got.", file=sys.stderr)
 
         # The snapserver sends status updates every now and then, we don't care about those at all.
         # This has only really been a problem for me with snapclient-pa-role-cork.py, not when running this by hand.
@@ -182,11 +183,16 @@ class SnapController(object):
         #        Doing so would also help snapclient-pa-role-cork with *keeping* the group muted when multiple devices disagree.
         for possible_result in data:
             if 'result' not in possible_result and 'error' not in possible_result:
+                # Not a result or error, probably one of the status updates, ignore it.
                 continue
-            else:
+            elif result_id is None:
+                # Since we don't know what result we're looking for, just assume the first is valid
+                break
+            elif possible_result['id'] == result_id:
                 break
         else:
-            raise Exception("No result recieved from Snapserver")
+            print(data, file=sys.stderr)
+            raise Exception(f"Did not recieve relevant result ID ({result_id}) from Snapserver")
 
         return possible_result
 
@@ -263,6 +269,8 @@ class SnapController(object):
             "id": self.last_command_id,
             "method": method,
         }
+        self.last_command_id += 1  # Increment the ID for the next command
+
         if params:
             data['params'] = params
             if 'percent' in data['params'] and 'muted' in data['params']:
@@ -279,9 +287,8 @@ class SnapController(object):
 
         self.send_data(data)
 
-        response = self.recv_result()
+        response = self.recv_result(result_id=data['id'])
         assert response['id'] == data['id'], response
-        self.last_command_id += 1  # Increment the ID for the next one
 
         if 'error' in response:
             raise SnapException(**response['error'])
