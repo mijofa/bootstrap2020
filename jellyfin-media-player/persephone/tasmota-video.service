@@ -1,0 +1,19 @@
+[Unit]
+Description=Control state of TV via Tasmota controller
+BindsTo=video-output.target
+
+ConditionKernelCommandLine=tasmota.video
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+ExecStop=tasmota_controller.py  --power Off video
+ExecStart=tasmota_controller.py --power On  video
+# If the TV's state somehow gets out of sync, we'll need a Reload while the power is on
+ExecReload=ir-ctl --send=/etc/TV_power.ir
+
+Restart=on-failure
+
+[Install]
+WantedBy=video-output.target

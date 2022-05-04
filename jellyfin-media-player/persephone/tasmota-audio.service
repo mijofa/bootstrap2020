@@ -2,14 +2,14 @@
 Description=power off the speakers when audio is muted
 BindsTo=audio-muted.target
 
-ConditionHost=persephone
+ConditionKernelCommandLine=tasmota.audio
 
 [Service]
 Type=oneshot
 RemainAfterExit=true
 
-ExecStart=curl --silent "http://mijofa-lounge-speakers/cm" --data "cmnd=Power Off"
-ExecStop=curl  --silent "http://mijofa-lounge-speakers/cm" --data "cmnd=Power On"
+ExecStart=tasmota_controller.py --power Off audio
+ExecStop=tasmota_controller.py  --power On  audio
 
 Restart=on-failure
 
