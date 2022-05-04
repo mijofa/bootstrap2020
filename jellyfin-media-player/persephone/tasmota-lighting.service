@@ -2,7 +2,7 @@
 Description=dim the lounge room light during media playback
 BindsTo=media-playback.target
 
-ConditionHost=persephone
+ConditionKernelCommandLine=tasmota.lighting
 
 [Service]
 Type=oneshot
@@ -13,8 +13,8 @@ RemainAfterExit=true
 # You can customise dimmer values according to personal preference.
 # TODO: Consider setting the value to something like the time of day, then it could set different dimmer values accordingly.
 #       The main reason I would want to do such a thing is that I want it less dim when eating lunch, but more dim after dinner.
-ExecStart=curl --silent "http://mijofa-lounge-light/cm" --data "cmnd=EVENT cinema=1"
-ExecStop=curl  --silent "http://mijofa-lounge-light/cm" --data "cmnd=EVENT cinema=0"
+ExecStart=tasmota_controller.py --event Cinema=1 lighting
+ExecStop=tasmota_controller.py  --event Cinema=0 lighting
 
 Restart=on-failure
 
