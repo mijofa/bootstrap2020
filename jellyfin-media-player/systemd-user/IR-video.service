@@ -1,0 +1,22 @@
+[Unit]
+Description=Control state of TV via IR transmitter
+BindsTo=video-output.target
+
+ConditionKernelCommandLine=!tasmota.video
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+# FIXME: This unit has no real knowledge of whether the TV is on or off,
+#        because there is no way to send on *OR* off, only a toggle.
+#        So really this doesn't actually do anything useful as far as systemd is concerned,
+#        I've only put this unit here to simplify the migration towards 'tasmota-video.service'
+ExecStop=ir-ctl   --send=/etc/TV_power.ir
+ExecStart=ir-ctl  --send=/etc/TV_power.ir
+ExecReload=ir-ctl --send=/etc/TV_power.ir
+
+Restart=on-failure
+
+[Install]
+WantedBy=video-output.target
