@@ -59,8 +59,11 @@ GLOBAL_EVENT_MAPPING = {
             ['systemctl', '--user', 'restart', 'jellyfinmediaplayer']),
         evdev.ecodes.KEY_EXIT: lambda: subprocess.check_call(
             ['systemctl', '--user', 'restart', 'jellyfinmediaplayer']),
+        # FIXME: Create a Python function to handle systemd toggling
         evdev.ecodes.KEY_CLOSE: lambda: subprocess.check_call(
-            ['ir-ctl', '--send=/etc/TV_power.ir']),
+            "if systemctl --user is-active video-output.target ; then systemctl --user stop --no-block video-output.target ; "
+            "else systemctl --user start --no-block video-output.target ; fi",
+            shell=True),
     },
 }
 
