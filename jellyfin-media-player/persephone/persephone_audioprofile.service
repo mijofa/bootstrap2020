@@ -1,5 +1,6 @@
 [Unit]
 Description=Apply Persephone's host specific audio device profile
+BindsTo=jellyfinmediaplayer.service
 
 After=pulseaudio.service
 
