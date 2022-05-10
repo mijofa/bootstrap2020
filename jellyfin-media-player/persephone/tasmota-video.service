@@ -1,5 +1,6 @@
 [Unit]
 Description=Control state of TV via Tasmota controller
+Before=jellyfinmediaplayer.service
 BindsTo=video-output.target
 
 ConditionKernelCommandLine=tasmota.video
@@ -10,10 +11,11 @@ RemainAfterExit=true
 
 ExecStop=tasmota_controller.py  --power Off video
 ExecStart=tasmota_controller.py --power On  video
+ExecStartPost=sleep 9
 # If the TV's state somehow gets out of sync, we'll need a Reload while the power is on
 ExecReload=ir-ctl --send=/etc/TV_power.ir
 
 Restart=on-failure
 
 [Install]
-WantedBy=video-output.target
+WantedBy=video-output.target jellyfinmediaplayer.service
