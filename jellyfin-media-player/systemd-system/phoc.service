@@ -36,9 +36,10 @@ Environment=LANG=C.UTF-8
 Environment=XDG_CURRENT_DESKTOP=GNOME
 Environment=XDG_SESSION_DESKTOP=phosh
 Environment=XDG_SESSION_TYPE=wayland
+# NOTE: graphical-session.target is configured to refuse manual start/stop, so don't try doing that to make this more standalone
 ExecStart=/usr/bin/phoc --config /etc/phoc.ini --exec '/bin/systemctl --user start --wait jellyfinmediaplayer.service'
-ExecStop=/bin/systemctl --user stop graphical-session.target
-#ExecStop=loginctl terminate-user jellyfinuser
+# Force the entire  'jellyfinuser' session to stop when we exit, this should avoid things like the notification daemon sticking around on restart
+ExecStop=/bin/systemctl --user exit
 TimeoutStartSec=30
 User=jellyfinuser
 PAMName=login
