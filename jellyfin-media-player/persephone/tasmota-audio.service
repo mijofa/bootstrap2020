@@ -1,6 +1,8 @@
 [Unit]
-Description=power off the speakers when audio is muted
-BindsTo=audio-muted.target
+Description=power the speakers when audio is unmuted
+Requires=pulseaudio.service
+After=pulseaudio.service
+StopPropagatedFrom=pulseaudio.service
 
 ConditionKernelCommandLine=tasmota.audio
 
@@ -8,10 +10,14 @@ ConditionKernelCommandLine=tasmota.audio
 Type=oneshot
 RemainAfterExit=true
 
-ExecStart=tasmota_controller.py --power Off audio
-ExecStop=tasmota_controller.py  --power On  audio
+# Refuse start if audio is muted
+# Does not make it *stop* when audio mutes
+ExecCondition=sh -c 'systemctl --user is-active audio-muted.target || exit 0 && exit 1'
+
+ExecStart=tasmota_controller.py --power On  audio
+ExecStop=tasmota_controller.py  --power Off audio
 
 Restart=on-failure
 
 [Install]
-WantedBy=audio-muted.target
+WantedBy=pulseaudio.service
