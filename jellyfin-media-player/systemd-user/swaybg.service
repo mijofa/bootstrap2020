@@ -7,7 +7,7 @@ Before=keybinds.service
 Before=snapclient.service
 Before=volnotifier.service
 
-BindsTo=graphical-session.target
+PartOf=graphical-session.target
 
 [Service]
 ExecStart=/usr/bin/swaybg --color '#000000' --image /usr/share/plymouth/themes/jellyfin/logo.png --mode center
