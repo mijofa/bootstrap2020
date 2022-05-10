@@ -1,0 +1,22 @@
+# I want tasmota-audio.service to power off on stop,
+# otherwise whenever I shut the system down it will power *on* the speakers.
+# Problem is I need audio-muted.target to match media-playback.target in that it will be started when I want the speakers off.
+#
+# So this unit should, in theory, start tasmota-audio.service on stop, and stop it on start
+# FIXME: Wait, what happens with this service on shutdown?
+[Unit]
+Description=invert audio-mute.target state for tasmota-audio.service
+Before=tasmota-audio.service
+StopPropagatedFrom=audio-muted.target
+
+ConditionKernelCommandLine=tasmota.audio
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+ExecStart=systemctl --user stop --no-block tasmota-audio.service
+ExecStop=systemctl --user start --no-block tasmota-audio.service
+
+[Install]
+WantedBy=audio-muted.target
