@@ -2,7 +2,7 @@
 Description=power the speakers when audio is unmuted
 Requires=pulseaudio.service
 After=pulseaudio.service
-StopPropagatedFrom=pulseaudio.service
+PartOf=pulseaudio.service
 
 ConditionKernelCommandLine=tasmota.audio
 
