@@ -7,7 +7,7 @@
 [Unit]
 Description=invert audio-mute.target state for tasmota-audio.service
 Before=tasmota-audio.service
-StopPropagatedFrom=audio-muted.target
+PartOf=audio-muted.target
 
 ConditionKernelCommandLine=tasmota.audio
 
