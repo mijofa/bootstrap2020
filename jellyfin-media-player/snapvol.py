@@ -68,38 +68,31 @@ def convert_decimal_to_pa(decimal):
     # But we normally go above 100%,
     # so in order to maintain more control over the volume from Snapcast I'm doubling it.
     # This should result in Snapcasts slider going covering PulseAudio's 0-200% instead.
-    return dbus.UInt32(decimal * (65536 * 2))
+    return dbus.UInt32(decimal * (65536))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    # FIXME: --help-all does not work without all other required arguments.
-    #        I don't currently have any idea how to work around this.
-    parser.add_argument('--volume', type=float,
-                        help="The volume percentage (as decimal: 0-1) to set the pulseaudio sink to.")
     parser.add_argument('--mute', type=str_to_bool,
-                        help="Whether to mute the sink or not")
+                        help="Whether to mute/unmute the snapclient audio")
 
+    parser.add_argument('--volume', type=float,
+                        help="The volume (like 0.0-1.0) to set the pulseaudio sink to. Ignored without --sink or $PULSE_SINK")
     parser.add_argument('--sink', type=str, default=None,
-                        help="The sink to control the state of (default: $PULSE_SINK or fallback)")
+                        help="The sink to control the volume of (default: $PULSE_SINK")
 
     args = parser.parse_args()
 
     pulse_bus = dbus.connection.Connection(get_pulse_bus_address())
     pulse_core = pulse_bus.get_object(object_path='/org/pulseaudio/core1')
 
-    if not args.sink and not os.environ.get('PULSE_SINK'):
-        sink = get_fallback_sink(pulse_bus, pulse_core)
-    elif not args.sink and os.environ.get('PULSE_SINK'):
-        sink = get_sink_by_name(pulse_bus, pulse_core, os.environ['PULSE_SINK'])
-    else:
-        sink = get_sink_by_name(pulse_bus, pulse_core, args.sink)
-
     if args.mute is not None:
         for stream in get_snapclient_streams(pulse_bus, pulse_core):
             stream.Set("org.PulseAudio.Core1.Stream", "Mute",
                        dbus.Boolean(args.mute, variant_level=1))
-# We don't do any volume control here because it ends up doubling the volume changes when synchronising the PA volume to snapcast
-#    if args.volume is not None:
-#        sink.Set("org.PulseAudio.Core1.Device", "Volume",
-#                 dbus.Array((convert_decimal_to_pa(args.volume),), variant_level=1))
+# We don't do any volume control normally because it gets confused when synchronising the volume *to* snapcast
+# But it's useful to have this able to do volume control for my desktop and similar use-cases, so I support that anyway
+    if args.volume is not None and (args.sink or os.environ.get('PULSE_SINK')):
+        sink = get_sink_by_name(pulse_bus, pulse_core, args.sink or os.environ.get('PULSE_SINK'))
+        sink.Set("org.PulseAudio.Core1.Device", "Volume",
+                 dbus.Array((convert_decimal_to_pa(args.volume),), variant_level=1))
