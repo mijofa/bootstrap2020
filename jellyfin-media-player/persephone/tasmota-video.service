@@ -18,4 +18,4 @@ ExecReload=ir-ctl --send=/etc/TV_power.ir
 Restart=on-failure
 
 [Install]
-WantedBy=video-output.target jellyfinmediaplayer.service media-playback.target
+WantedBy=video-output.target
