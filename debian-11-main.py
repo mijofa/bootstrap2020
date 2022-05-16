@@ -580,6 +580,7 @@ with tempfile.TemporaryDirectory() as td:
             '--include=firmware-amd-graphics firmware-intel-sound',  # I don't think I'm using any of this hardware, but shouldn't hurt
             # NOTE: firmware-ivtv has an EULA that needs to be agreed to, rather than fixing that I'm just leaving it out
             '--include=firmware-samsung',  # I don't understand how codec firmwares work, but given this is a media machine I might as well include them
+            '--include=firmware-realtek',  # Was getting errors in journal about this missing due to a WiFi NIC, also valid for some wired NICs though, and it gets rid of an error so might as well.
 
             # I hoped this would improve support on 'beylix' in my room. But it only got worse
             # '--include=v86d',
