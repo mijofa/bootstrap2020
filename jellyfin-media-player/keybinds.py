@@ -38,11 +38,13 @@ GLOBAL_EVENT_MAPPING = {
         # evdev.ecodes.KEY_MEDIA: lambda: increment_snap_channel(+1),
         # evdev.ecodes.KEY_SOUND: lambda: increment_snap_channel(-1),
 
-        evdev.ecodes.KEY_HELP: lambda: run_multiple(lambda: asyncio.ensure_future(send_to_inputSocket('KEY_INFO')),
-                                                    show_time_notification),
         evdev.ecodes.KEY_INFO: lambda: run_multiple(lambda: asyncio.ensure_future(send_to_inputSocket('KEY_INFO')),
                                                     show_time_notification),
-        evdev.ecodes.KEY_EPG: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_EPG')),
+        # We don't actually use live TV, so the EPG is useless,
+        # but we have and EPG button on some remotes without an INFO button, so let's use them interchangably
+        # evdev.ecodes.KEY_EPG: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_EPG')),
+        evdev.ecodes.KEY_EPG: lambda: run_multiple(lambda: asyncio.ensure_future(send_to_inputSocket('KEY_INFO')),
+                                                   show_time_notification),
         evdev.ecodes.KEY_TV: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_TV')),
         evdev.ecodes.KEY_RECORD: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_RECORD')),
         evdev.ecodes.KEY_ZOOM: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_ZOOM')),
@@ -52,14 +54,20 @@ GLOBAL_EVENT_MAPPING = {
         evdev.ecodes.KEY_CONNECT: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_PLAYPAUSE')),  # PrisonPC did not plan
         evdev.ecodes.KEY_CHAT: lambda: asyncio.ensure_future(send_to_inputSocket('KEY_SUBTITLE')),  # X11 doesn't like KEY_SUBTITLE
 
-
+        # PrisonPC remote
         evdev.ecodes.KEY_MENU: lambda: subprocess.check_call(
             ['systemctl', '--user', 'restart', '--no-block', 'jellyfinmediaplayer']),
+        # Asus remote
         evdev.ecodes.KEY_HOMEPAGE: lambda: subprocess.check_call(
             ['systemctl', '--user', 'restart', '--no-block', 'jellyfinmediaplayer']),
+        # TBS & unlabelled_black remotes
         evdev.ecodes.KEY_EXIT: lambda: subprocess.check_call(
             ['systemctl', '--user', 'restart', '--no-block', 'jellyfinmediaplayer']),
-        # FIXME: Create a Python function to handle systemd toggling
+
+        # Every remote's Power button.
+        # I can't use KEY_POWER because it get's intercepted by systemd and shut's the system down,
+        # so I use KEY_CLOSE instead because PrisonPC used that, so some consistency is nice
+        # FIXME: Use Python instead of calling out to a shell
         evdev.ecodes.KEY_CLOSE: lambda: subprocess.check_call(
             "if systemctl --user is-active video-output.target ; then systemctl --user stop --no-block video-output.target ; "
             "else systemctl --user start --no-block video-output.target ; fi",
