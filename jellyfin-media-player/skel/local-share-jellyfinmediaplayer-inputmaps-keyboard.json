@@ -23,9 +23,9 @@
 
     // These are triggered by keybinds.py as jellyfin-media-player doesn't actually notice these keys being pressed anyway
     "KEY_PLAYPAUSE": "play_pause",
-    "KEY_MENU": "menu",
+    // "KEY_MENU": "menu",
     "KEY_INFO": "info",
-    "KEY_EPG": "guide",
+    // "KEY_EPG": "guide",
     "KEY_TV": "recordedtv",
     "KEY_RECORD": "record",
     "KEY_ZOOM": "changezoom",
