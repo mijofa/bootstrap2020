@@ -52,12 +52,15 @@ protocol = "rc-6"
 0x8026bd54 = "KEY_SUBTITLE"
 0x80263df7 = "KEY_F11"  # fullscreen
 0x8026bdf7 = "KEY_F11"  # fullscreen
-#0x80263db1 = "KEY_MEDIA"  # radio icon
-#0x8026bdb1 = "KEY_MEDIA"  # radio icon
+# The CHANNEL buttons here don't really match the icons on the buttons, but there was no channel up/down buttons here,
+# and remapping them here is much simpler and more obviously communicates the intent than binding both buttons does.
+# This is what I would map them to otherwise:
+# # 0x80263db1 = "KEY_MEDIA"  # radio icon
+# # 0x8026bdb1 = "KEY_MEDIA"  # radio icon
+# # 0x80263daf = "KEY_SOUND"  # music symbol
+# # 0x8026bdaf = "KEY_SOUND"  # music symbol
 0x80263db1 = "KEY_CHANNELUP"  # radio icon
 0x8026bdb1 = "KEY_CHANNELUP"  # radio icon
-#0x80263daf = "KEY_SOUND"  # music symbol
-#0x8026bdaf = "KEY_SOUND"  # music symbol
 0x80263daf = "KEY_CHANNELDOWN"  # music symbol
 0x8026bdaf = "KEY_CHANNELDOWN"  # music symbol
 0x80263dad = "KEY_AUDIO"  # DTS
