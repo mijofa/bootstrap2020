@@ -1,0 +1,21 @@
+[Unit]
+Description=Apply Persephone's host specific config
+
+Before=graphical.target
+Before=phoc.service
+
+ConditionHost=persephone
+
+[Service]
+Type=oneshot
+
+# Symlink everything from /etc/persephone-config into /etc/,
+# keeping the directory tree layout, and overwriting existing files.
+ExecStart=cp --verbose --symbolic-link --recursive --force /etc/persephone-config/. /etc/
+
+# NOTE: This runs before phoc, so the user's sytemd daemon shouldn't need reloading... But if it does, this *should* do the trick:
+# ExecStartPost=runuser -l jellyfinuser -c 'systemctl --user daemon-reload'
+
+[Install]
+WantedBy=graphical.target
+WantedBy=phoc.service

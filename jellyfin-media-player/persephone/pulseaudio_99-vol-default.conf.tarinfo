@@ -1,2 +1,2 @@
-{"name": "etc/systemd/user/persephone_pulseaudio.service.d/99-vol-default.conf",
+{"name": "etc/persephone-config/systemd/user/pulseaudio.service.d/51-vol-base.conf",
  "mode": 292}
