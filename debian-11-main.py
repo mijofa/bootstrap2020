@@ -144,6 +144,9 @@ group.add_argument('--authorized-keys-urls', metavar='URL', nargs='*',
 parser.add_argument('--upload-to', nargs='+', default=[], metavar='HOST',
                     type=hostname_or_fqdn_with_optional_user_at,
                     help='hosts to rsync the finished image to e.g. "root@tweak.prisonpc.com"')
+parser.add_argument('--github-release', metavar='USER/REPO:TAGNAME',
+                    type=str,  # FIXME
+                    help='Github repo & release to upload the finished image to e.g. "mijofa/bootstrap2020:jellyfin-media-player_2022-06-10"')
 parser.add_argument('--remove-afterward', action='store_true',
                     help='delete filesystem.squashfs after boot / upload (save space locally)')
 args = parser.parse_args()
@@ -161,7 +164,7 @@ validate_unescaped_path_is_safe(pathlib.Path.cwd())
 apt_proxy = subprocess.check_output(['auto-apt-proxy'], text=True).strip()
 
 git_proc = subprocess.run(
-    ['git', 'describe', '--always', '--dirty', '--broken'],
+    ['git', 'describe', '--always', '--dirty', '--broken', '--abbrev=0'],
     text=True,
     stdout=subprocess.PIPE,
     stderr=subprocess.DEVNULL)
@@ -202,6 +205,8 @@ if template_wants_PrisonPC and args.boot_test and not (args.netboot_only and hav
         'PrisonPC --boot-test needs --netboot-only and /usr/sbin/smbd.'
         ' Without these, site.dir cannot patch /etc/hosts, so'
         ' boot-test ldap/nfs/squid/pete redirect will not work!')
+if args.github_release and not args.reproducible:
+    raise NotImplementedError("Publishing a releases to Github needs --reproducible.")
 
 if args.reproducible:
     os.environ['SOURCE_DATE_EPOCH'] = str(int(args.reproducible.timestamp()))
@@ -903,6 +908,37 @@ for host in args.upload_to:
             input='\n'.join(sorted(soes)))
         # Sync /srv/netboot to /srv/tftp &c.
         subprocess.check_call(['ssh', host, 'tca', 'commit'])
+
+if args.github_release:
+    # FIXME: Just put these imports up the top with the other imports
+    import github
+
+    # NOTE: Uploading release assets simply will not work with user/pass credentials,
+    #       you must generate a personal access token as documented here:
+    #       https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+    gh_pass_path, = (p for p in pypass.PasswordStore().get_passwords_list() if pathlib.Path(p).name == 'api.github.com')
+    gh_token = pypass.PasswordStore().get_decrypted_password(gh_pass_path).splitlines()[0]
+    gh = github.Github(gh_token)
+
+    gh_repo = gh.get_repo(args.github_release)
+    gh_release = gh_repo.create_git_release(
+        # This will create a git tag matching the current HEAD
+        tag=destdir.name, target_commitish=git_description,
+        name=' '.join((
+            args.template.replace('-', ' ').title(),
+            '-'.join(destdir.name.rsplit('-', 4)[1:]),
+        )),
+        message="FIXME: To be filled out manually",
+        draft=True,
+    )
+    # gh_release = gh_repo.get_release(args.github_release.split(':', 1)[1])
+
+    for f in destdir.iterdir():
+        # FIXME: upload_asset does not support pathlib.
+        #        In a later version there is an upload_asset_from_memory function which will take a file-like object instead.
+        # FIXME: Theoretically we can add a progress bar of some sort if we were to wrap the read() of a file-like object.
+        print("Uploading", f.name, "to Github")
+        gh_release.upload_asset(str(f.resolve()))
 
 if args.remove_afterward:
     shutil.rmtree(destdir)
