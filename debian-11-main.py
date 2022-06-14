@@ -115,8 +115,8 @@ mutex.add_argument('--virtual-only', '--no-physical', action='store_true',
                    help='save space/time by omitting physical hw support')
 mutex.add_argument('--physical-only', '--no-virtual', action='store_true',
                    help='save space/time by omitting qemu/VM support')
-parser.add_argument('--reproducible', metavar='YYYY-MM-DD',
-                    type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc),
+parser.add_argument('--reproducible', metavar='EPOCHTIME',
+                    type=lambda s: datetime.datetime.utcfromtimestamp(int(s)),
                     help='build a reproducible OS image & sign it')
 group = parser.add_argument_group('customization')
 group.add_argument('--LANG', default=os.environ['LANG'], metavar='xx_XX.UTF-8',
