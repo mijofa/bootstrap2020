@@ -659,7 +659,7 @@ subprocess.check_call(
 if args.reproducible:
     (destdir / 'args.txt').write_text(pprint.pformat(args))
     (destdir / 'git-description.txt').write_text(git_description)
-    (destdir / 'B2SUMS').write_bytes(subprocess.check_output(['b2sum', *destdir.glob('*')]))
+    (destdir / 'B2SUMS').write_bytes(subprocess.check_output(['b2sum', *(f.name for f in destdir.glob('*'))]))
     if False:
         # Disabled for now because:
         #   1. you have to babysit the build (otherwise "gpg: signing failed: Timeout"); and
