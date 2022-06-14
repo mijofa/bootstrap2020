@@ -14,19 +14,19 @@ def get_repo_latest_assets(repo_name):
     release = repo.get_latest_release()
     assets = {a.name: a for a in release.get_assets()}
 
-    if 'sha512sums.txt' in assets:
-        # Add sha512sums to each asset object
-        # Depends on a sha512sums.txt file being included in the assets,
+    if 'B2SUMS' in assets:
+        # Add b2sums to each asset object
+        # Depends on a B2SUMS file being included in the assets,
         # because Github don't provide that info as part of the API.
         # FIXME: Why the fuck don't Github do this? Is there a better way for me to do this?
         # FIXME: Automatically detect other hashing algorithm files and use them if available.
-        req = urllib.request.urlopen(assets['sha512sums.txt'].browser_download_url)
+        req = urllib.request.urlopen(assets['B2SUMS'].browser_download_url)
         for line in req.readlines():
             # The HTTP server doesn't always give us a charset, so fallback on UTF-8 when that's the case.
             # FIXME: Should we fallback on ASCII instead?
-            asset_sha512sum, name = line.decode(req.headers.get_content_charset() or 'utf-8').split()
+            asset_b2sum, name = line.decode(req.headers.get_content_charset() or 'utf-8').split()
             asset = assets[name]
-            assets[name].sha512sum = asset_sha512sum
+            assets[name].b2sum = asset_b2sum
             yield asset
 
 
@@ -41,8 +41,8 @@ def maybe_update_assets(repo_name: str, dest_dir: pathlib.Path):
         asset_path = dest_dir / asset.name
         if asset_path.exists():
             with asset_path.open('rb') as downloaded_asset:
-                checked_sha512sum = hashlib.sha512(downloaded_asset.read()).hexdigest()
-                if checked_sha512sum != asset.sha512sum:
+                checked_b2sum = hashlib.blake2b(downloaded_asset.read()).hexdigest()
+                if checked_b2sum != asset.b2sum:
                     print(asset.name, "doesn't match, unlinking.")
                     asset_path.unlink()
                 else:
