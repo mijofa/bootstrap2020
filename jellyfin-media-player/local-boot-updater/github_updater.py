@@ -14,20 +14,36 @@ def get_repo_latest_assets(repo_name):
     release = repo.get_latest_release()
     assets = {a.name: a for a in release.get_assets()}
 
-    if 'B2SUMS' in assets:
-        # Add b2sums to each asset object
-        # Depends on a B2SUMS file being included in the assets,
-        # because Github don't provide that info as part of the API.
-        # FIXME: Why the fuck don't Github do this? Is there a better way for me to do this?
-        # FIXME: Automatically detect other hashing algorithm files and use them if available.
-        req = urllib.request.urlopen(assets['B2SUMS'].browser_download_url)
-        for line in req.readlines():
-            # The HTTP server doesn't always give us a charset, so fallback on UTF-8 when that's the case.
-            # FIXME: Should we fallback on ASCII instead?
-            asset_b2sum, name = line.decode(req.headers.get_content_charset() or 'utf-8').split()
-            asset = assets[name]
-            assets[name].b2sum = asset_b2sum
-            yield asset
+    # Add check sums to each asset object
+    # Depends on a B2SUMS/SHA3SUMS/SHA512SUMS file being included in the assets,
+    # because Github don't provide that info as part of the API.
+    # FIXME: Why the fuck don't Github do this? Is there a better way for me to do this?
+    # FIXME: Should we check signatures/etc here?
+    hash_filename, = [name for name in assets if name.endswith('SUMS')]
+    hash_file = urllib.request.urlopen(assets[hash_filename].browser_download_url)
+    hash_data = {name: hash_sum for hash_sum, name in ('\t'.split(hash_file.readline()))}
+    hash_algo = hash_filename[:-4].lower()  # Just remove the 'SUMS' from the end
+
+    if hash_algo == 'b2':
+        # blake2b is the default for b2sum command, and is more efficient on 64-bit while blake2s is more efficient on 8/16/32-bit
+        hash_algo = 'blake2b'
+        hash_func = getattr(hashlib, hash_algo)
+    elif hash_algo == 'sha3':
+        # This one is slightly unique in that there's a different function for each hash size
+        # so just kinda do nothing with it here and figure that out later when we have the actual hash lengths
+        pass
+    else:
+        hash_func = getattr(hashlib, hash_algo)
+
+    for filename in hash_data:
+        asset = assets[filename]
+        if hash_algo == 'sha3':
+            # Not sure if we should be allowing multiple different hash lengths in one file, but we do
+            assets[filename].hash_func = getattr(hashlib, 'sha3_' + str(len(hash_data[filename]) * 4))
+        else:
+            assets[filename].hash_func = hash_func
+        assets[filename].hash = hash_data[filename]
+        yield asset
 
 
 def maybe_update_assets(repo_name: str, dest_dir: pathlib.Path):
@@ -38,15 +54,21 @@ def maybe_update_assets(repo_name: str, dest_dir: pathlib.Path):
     """
     num_assets_updated = 0
     for asset in get_repo_latest_assets(repo_name):
+        if not hasattr(asset, 'hash'):
+            # We can't confirm the hash of this file, so we don't even bother with it.
+            # It's probably he SUMS file itself.
+            # FIXME: What if it is a detached signature?
+            #        and not (asset.name.endswith('.asc') or asset.name.endswith('.sig'))
+            continue
+
         asset_path = dest_dir / asset.name
         if asset_path.exists():
-            with asset_path.open('rb') as downloaded_asset:
-                checked_b2sum = hashlib.blake2b(downloaded_asset.read()).hexdigest()
-                if checked_b2sum != asset.b2sum:
-                    print(asset.name, "doesn't match, unlinking.")
-                    asset_path.unlink()
-                else:
-                    print(asset.name, "all good!")
+            checked_hash = asset.hash_func(asset_path.read_bytes()).hexdigest()
+            if checked_hash != asset.hash:
+                print(asset.name, "doesn't match, unlinking.")
+                asset_path.unlink()
+            else:
+                print(asset.name, "all good!")
 
         if not asset_path.exists():
             print(asset.name, "downloading...")
@@ -59,13 +81,19 @@ def maybe_update_assets(repo_name: str, dest_dir: pathlib.Path):
 
 
 def increment_stored_releases(boot_dir: pathlib.Path):
-    """Move latest to previous, and link next into latest."""
+    """
+    Move latest to previous, and link pending into latest.
+
+    This is trying to do a kind of copy-on-write type thing,
+    for when using simpler FAT filesystems that don't support it at the fs level.
+    """
     previous = (boot_dir / 'previous')
     latest = (boot_dir / 'latest')
     pending = (boot_dir / 'pending')
     assert previous.is_dir() and latest.is_dir() and pending.is_dir()
 
     # Delete all of 'previous'
+    # FIXME: 'previous' should actually be more like "last successful". Currently it's always 1 version behind latest
     for previous_asset in previous.iterdir():
         previous_asset.unlink()
 
