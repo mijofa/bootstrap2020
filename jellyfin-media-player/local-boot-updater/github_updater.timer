@@ -1,0 +1,16 @@
+[Timer]
+# I want this to run at 2am, instead of midnight.
+# Because it's a lot more likely someone will be watching a movie that finishes at like 3mins past midnight.
+# Also for those who have peak/off-peak internet plans, this should hit the off-peak time perfectly.
+OnCalendar=*-*-* 02:00:00
+
+# Also run 15mins after boot, for those who shut it down overnight
+# NOTE: This could be an issue if I were to boot it up and immediately start a movie then shutdown overnight.
+#       That would result in it never actually updating due to the ExecCondition against media-playback.target
+OnBootSec=15m
+
+# Randomise the startup time a little, to avoid conflicting with other things
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target
