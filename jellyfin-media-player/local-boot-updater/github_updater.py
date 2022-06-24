@@ -1,10 +1,15 @@
 #!/usr/bin/python3
 """Get assets from a Github repo's latest release."""
+import sys
 import urllib.request
 import pathlib
 import hashlib
 
 import github
+
+
+BOOT_PATH = pathlib.Path('.').resolve()
+GITHUB_REPO = sys.argv[1]
 
 
 def get_repo_latest_assets(repo_name):
@@ -15,14 +20,16 @@ def get_repo_latest_assets(repo_name):
     assets = {a.name: a for a in release.get_assets()}
 
     # Add check sums to each asset object
-    # Depends on a B2SUMS/SHA3SUMS/SHA512SUMS file being included in the assets,
-    # because Github don't provide that info as part of the API.
+    # Depends on a B2SUMS/SHA3SUMS/SHA512SUMS file being included in the assets.
     # FIXME: Why the fuck don't Github do this? Is there a better way for me to do this?
     # FIXME: Should we check signatures/etc here?
     hash_filename, = [name for name in assets if name.endswith('SUMS')]
     hash_file = urllib.request.urlopen(assets[hash_filename].browser_download_url)
-    hash_data = {name: hash_sum for hash_sum, name in ('\t'.split(hash_file.readline()))}
+    hash_data = {name.strip(): hash_sum for hash_sum, name in (
+        line.decode(hash_file.headers.get_content_charset() or 'utf-8').split(maxsplit=1) for line in hash_file.readlines())}
     hash_algo = hash_filename[:-4].lower()  # Just remove the 'SUMS' from the end
+
+    print(hash_algo, hash_data)
 
     if hash_algo == 'b2':
         # blake2b is the default for b2sum command, and is more efficient on 64-bit while blake2s is more efficient on 8/16/32-bit
@@ -118,5 +125,5 @@ def increment_stored_releases(boot_dir: pathlib.Path):
             latest_asset.unlink()
 
 
-if maybe_update_assets('mijofa/bootstrap2020', pathlib.Path('/home/mike/tmp/pending')):
-    increment_stored_releases(pathlib.Path('/home/mike/tmp'))
+if maybe_update_assets(GITHUB_REPO, BOOT_PATH / 'pending'):
+    increment_stored_releases(BOOT_PATH)
