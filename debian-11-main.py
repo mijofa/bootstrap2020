@@ -639,6 +639,8 @@ with tempfile.TemporaryDirectory() as td:
 
             '--include=grim',  # Wayland screenshot utility, not really using it yet but would like to
 
+            '--include=python3-github',  # Github API library for the auto updater script
+
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
             '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev & uinput devices
