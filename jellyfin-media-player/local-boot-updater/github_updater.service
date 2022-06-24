@@ -1,0 +1,29 @@
+[Unit]
+Description=Auto-update local boot SOE
+
+Requires=network-online.target
+After=network-online.target
+After=graphical.target
+
+RequiresMountsFor=/boot/efi/
+
+ConditionPathExists=/boot/efi/
+ConditionPathIsMountPoint=/boot/efi/
+ConditionPathIsReadWrite=/boot/efi/pending/
+ConditionPathIsReadWrite=/boot/efi/latest/
+ConditionPathIsReadWrite=/boot/efi/previous/
+
+[Service]
+# Do *NOT* run the update if media-playback.target is active.
+# Because we're probably currently downloading stream data, so let's not hammer the network or I/O.
+ExecCondition=runuser --login jellyfinuser --command 'DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u jellyfinuser)/bus systemctl --user status media-playback.target || exit 0 && exit 1'
+
+ExecStart=github_updater.py mijofa/bootstrap2020
+WorkingDirectory=/boot/efi/
+
+# These are equivalent to "nice ionice -c3 chrt --idle 0".  I think. --twb, Jun 2016
+Nice=10
+IOSchedulingClass=idle
+CPUSchedulingPolicy=idle
+
+MemoryHigh=512M

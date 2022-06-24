@@ -3,6 +3,12 @@
 [Unit]
 Description=Phosh, a Wayland compositor
 
+# Wait 'til we're online because it's pointless to run Jellyfin while offline anyway
+Requires=network-online.target
+After=network-online.target
+
+After=apply_persephone_config.target
+
 # Make sure we are started after logins are permitted.
 After=systemd-user-sessions.service
 # If Plymouth is used, we want to start when it is on its way out.
