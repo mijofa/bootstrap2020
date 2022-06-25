@@ -104,7 +104,12 @@ def maybe_get_new_assets(repo_name: str, old_dir: pathlib.Path, new_dir: pathlib
             assets_updated.append(asset.name)
         elif old_asset.exists() and asset.hash_func(old_asset.read_bytes()).hexdigest() == asset.hash:
             # Exists in latest, as expected
-            print(asset.name, "exists in latest, and hashes match. Skipping")
+            print(asset.name, "exists in latest, and hashes match. Skipping", end='')
+            if new_asset.exists():
+                new_asset.unlink()
+                print(" and deleting from pending")
+            else:
+                print()
         else:
             # Hash mismatch or doesn't exist
             print(asset.name, "hash mismatch or doesn't exist. Downloading new")
@@ -112,6 +117,7 @@ def maybe_get_new_assets(repo_name: str, old_dir: pathlib.Path, new_dir: pathlib
             # FIXME: Can we do anything like an rsync update here?
             # FIXME: Use the reporthook= arg and do some sort of progress bar, only if stdout is a TTY
             urllib.request.urlretrieve(asset.browser_download_url, new_asset)
+            assert asset.hash_func(new_asset.read_bytes()).hexdigest() == asset.hash, "Download file doesn't match the given hash"
             assets_updated.append(asset.name)
 
     return assets_updated
