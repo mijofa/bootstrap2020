@@ -4,10 +4,11 @@
 # Also for those who have peak/off-peak internet plans, this should hit the off-peak time perfectly.
 OnCalendar=*-*-* 02:00:00
 
-# Also run 15mins after boot, for those who shut it down overnight
-# NOTE: This could be an issue if I were to boot it up and immediately start a movie then shutdown overnight.
-#       That would result in it never actually updating due to the ExecCondition against media-playback.target
-OnBootSec=15m
+# Also when the timer unit starts for systems that are shut down overnight.
+# NOTE: This could be an issue if I normally boot it up and start a movie before the RandomizedDelaySec,
+#       causing the ExecCondition to fail and it wait until midnight,
+#       but then I shutdown overnight and the midnight timer never triggers.
+OnActiveSec=0
 
 # Randomise the startup time a little, to avoid conflicting with other things
 RandomizedDelaySec=15m
