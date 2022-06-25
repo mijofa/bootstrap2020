@@ -107,7 +107,7 @@ def maybe_get_new_assets(repo_name: str, old_dir: pathlib.Path, new_dir: pathlib
             print(asset.name, "exists in latest, and hashes match. Skipping")
         else:
             # Hash mismatch or doesn't exist
-            print(asset.name, "Exists in neither, or hash mismatch. Downloading new")
+            print(asset.name, "hash mismatch or doesn't exist. Downloading new")
 
             # FIXME: Can we do anything like an rsync update here?
             # FIXME: Use the reporthook= arg and do some sort of progress bar, only if stdout is a TTY
