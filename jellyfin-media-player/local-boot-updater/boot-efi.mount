@@ -12,5 +12,6 @@ Type=vfat
 Options=nodev,nosuid,noexec,nofail
 DirectoryMode=0
 
-[Install]
-WantedBy=local-fs.target
+# Only mount this when we want to use it
+# [Install]
+# WantedBy=local-fs.target
