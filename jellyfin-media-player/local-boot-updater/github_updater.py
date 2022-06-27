@@ -93,7 +93,7 @@ def maybe_get_new_assets(repo_name: str, old_dir: pathlib.Path, new_dir: pathlib
             # FIXME: I actually want to keep these, but only if we other assets got updated too
             # FIXME: What if it is a detached signature?
             #        and not (asset.name.endswith('.asc') or asset.name.endswith('.sig'))
-            print('Skipping', asset.name)
+            print(asset.name, "Has no hash. Skipping")
             continue
 
         old_asset = old_dir / asset.name
@@ -139,7 +139,7 @@ def increment_stored_releases(previous: pathlib.Path, latest: pathlib.Path, pend
     # Copy latest to pending
     shutil.copytree(latest, pending, dirs_exist_ok=True,
                     # Ignore files already in pending
-                    ignore=lambda src, names: (path.name for path in pending.iterdir()))
+                    ignore=lambda src, names: [path.name for path in pending.iterdir()])
 
     if get_currently_booted_soe() == previous.name:
         # Don't update previous if we're still running that since the last update
