@@ -1,0 +1,13 @@
+# Copied straight from 50-bootstrap2020.network and changed Type=ether to type-wlan
+
+[Match]
+Type=wlan
+[Network]
+DHCP=yes
+
+# If the DHCP server says "your name is foo.example.com",
+# allow this host to do "ping bar" to mean "bar.example.com".
+[DHCPv4]
+UseDomains=yes
+[IPv6AcceptRA]
+UseDomains=yes
