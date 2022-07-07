@@ -1,0 +1,3 @@
+{"name": "etc/systemd/system/multi-user.target.wants/wpa_supplicant@wlan0.service",
+ "linkname": "/lib/systemd/system/wpa_supplicant@.service",
+ "mode": 292}
