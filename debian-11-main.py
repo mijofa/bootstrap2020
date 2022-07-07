@@ -585,7 +585,12 @@ with tempfile.TemporaryDirectory() as td:
             '--include=firmware-amd-graphics firmware-intel-sound',  # I don't think I'm using any of this hardware, but shouldn't hurt
             # NOTE: firmware-ivtv has an EULA that needs to be agreed to, rather than fixing that I'm just leaving it out
             '--include=firmware-samsung',  # I don't understand how codec firmwares work, but given this is a media machine I might as well include them
-            '--include=firmware-realtek',  # Was getting errors in journal about this missing due to a WiFi NIC, also valid for some wired NICs though, and it gets rid of an error so might as well.
+            '--include=firmware-realtek firmware-iwlwifi',  # WiFi firmwares needed for WiFi support on some hardware
+            # I continued getting errors about failing to load iwlwifi firmware, but it worked.
+            # it did *not* work without the firmware-iwlwifi package though,
+            # so I suspect it fellback on an firmware for an older chipset from the same package
+            # '--include= atmel-firmware firmware-atheros firmware-libertas firmware-ti-connectivity',  # FIXME: Worth including these as well?
+            '--include=firmware-sof-signed',  # Needed this for audio on my Lenovo ThinkPad Yoga when testing for WiFi dev
 
             # I hoped this would improve support on 'beylix' in my room. But it only got worse
             # '--include=v86d',
@@ -625,6 +630,8 @@ with tempfile.TemporaryDirectory() as td:
             '--include=grim',  # Wayland screenshot utility, not really using it yet but would like to
 
             '--include=python3-github',  # Github API library for the auto updater script
+
+            '--include=wpasupplicant',  # Using WiFi for locally booted Jellyfin systems
 
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
