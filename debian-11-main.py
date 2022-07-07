@@ -625,6 +625,8 @@ with tempfile.TemporaryDirectory() as td:
 
             '--include=python3-github',  # Github API library for the auto updater script
 
+            '--include=wpasupplicant',  # Using WiFi for locally booted Jellyfin systems
+
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
             '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev & uinput devices
