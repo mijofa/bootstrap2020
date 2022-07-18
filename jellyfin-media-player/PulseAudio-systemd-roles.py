@@ -137,18 +137,13 @@ class PulseCorkHandler(object):
 
     def roles_updated(self):
         """Handle the roles list and mute/unmute the Snapcast group accordingly."""
-        if any(role in self.known_stream_roles.values() for role in self.trigger_roles):
-            new_state = True
-        else:
-            new_state = False
-
         # Systemd makes sure we can't stop/start something that is already in that state
-        if new_state:
-            print('Starting media-playback. Current streams:', self.known_stream_roles)
-            self.systemd1_manager.StartUnit(self.playback_target_name, 'fail')
+        if any(role in self.known_stream_roles.values() for role in self.trigger_roles):
+            print('Maybe starting media-playback. Current streams:', self.known_stream_roles)
+            self.systemd1_manager.StartUnit(self.playback_target_name, 'replace')
         else:
-            print('Stopping media-playback. Current streams:', self.known_stream_roles)
-            self.systemd1_manager.StopUnit(self.playback_target_name, 'fail')
+            print('Maybe stopping media-playback. Current streams:', self.known_stream_roles)
+            self.systemd1_manager.StopUnit(self.playback_target_name, 'replace')
 
     def _MuteUpdated(self, muted, device_path=None):
         if device_path is not None and device_path.rpartition('/')[-1].startswith('source'):
