@@ -1,0 +1,21 @@
+[Unit]
+Description=Enabling auto power on for the TV
+
+Before=graphical.target
+Before=phoc.service
+
+ConditionKernelCommandLine=tasmota.video
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+ExecStart=systemctl --user --global add-wants jellyfinmediaplayer.service tasmota-video
+ExecStop=rm -v /etc/systemd/user/jellyfinmediaplayer.service.wants/tasmota-video.service
+
+# NOTE: This runs before phoc, so the user's sytemd daemon shouldn't need reloading... But if it does, this *should* do the trick:
+# ExecStartPost=runuser -l jellyfinuser -c 'systemctl --user daemon-reload'
+
+[Install]
+WantedBy=graphical.target
+WantedBy=phoc.service

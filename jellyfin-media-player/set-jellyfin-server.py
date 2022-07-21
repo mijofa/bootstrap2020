@@ -5,6 +5,7 @@ import contextlib
 import json
 import os
 import pathlib
+import shlex
 import subprocess
 import urllib.parse
 import urllib.request
@@ -87,15 +88,29 @@ parser.add_argument('base_url', default=None, type=str, nargs='?',
                     help="The base URL for the Jellyfin server (default: determined from SRV records)")
 # FIXME: The autologin part doesn't actually work currently
 parser.add_argument('--UserId', default=None, type=str,
-                    help="The UserId for autologin (default: no autologin) (requires --AccessToken)")
+                    help="The UserId for autologin (default: determined from kernel cmdline) (requires --AccessToken)")
 parser.add_argument('--AccessToken', default=None, type=str,
-                    help="The AccessToken for autologin (default: no autologin) (requires --UserId)")
+                    help="The AccessToken for autologin (default: determined from kernel cmdline) (requires --UserId)")
 args = parser.parse_args()
 
 if args.base_url:
     server_info = get_JF_info(args.base_url)
 else:
     server_info = guess_JF_base_url()
+
+if not args.UserId and not args.AccessToken:
+    # Let's see if they were specified on the kernel cmdline
+    # FIXME: Is it wrong to set these values in the parsed args object?
+    kernel_cmdline = shlex.split(pathlib.Path('/proc/cmdline').read_text())
+    for arg in kernel_cmdline:
+        if not arg.startswith('jellyfin.'):
+            continue
+        else:
+            k, v = arg[len('jellyfin.'):].split('=', 1)
+            if k.lower() == 'userid':
+                args.UserId = v
+            elif k.lower() == 'accesstoken':
+                args.AccessToken = v
 
 # Massage that data into what's needed for the localstorage key
 # FIXME: What happens if multiple servers are set here?
@@ -118,6 +133,7 @@ jellyfin_credentials = {
         },
     ],
 }
+
 
 # Since that might have secrets in it, let's copy it out and remove them before we log it.
 sanitised_server_info = jellyfin_credentials['Servers'][0].copy()
