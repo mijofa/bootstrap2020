@@ -1,2 +1,0 @@
-{"name": "/etc/persephone-config/systemd/user/jellyfinmediaplayer.service.wants/tasmota-video.service",
- "linkname": "/etc/systemd/user/tasmota-video.service"}
