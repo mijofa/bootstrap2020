@@ -631,6 +631,8 @@ with tempfile.TemporaryDirectory() as td:
 
             '--include=wpasupplicant',  # Using WiFi for locally booted Jellyfin systems
 
+            '--include=lvm2',  # So that Ron can recover some data from repuprosed system if necessary
+
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
             '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev & uinput devices
