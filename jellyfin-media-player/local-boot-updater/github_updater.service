@@ -28,7 +28,7 @@ Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
 WorkingDirectory=/run/live/medium/
 ExecStartPre=mount -o remount,rw /run/live/medium/
 ExecStart=github_updater.py mijofa/bootstrap2020
-ExecStopPost=mount -o remount,rw /run/live/medium/
+ExecStopPost=mount -o remount,ro /run/live/medium/
 
 # These are equivalent to "nice ionice -c3 chrt --idle 0".  I think. --twb, Jun 2016
 Nice=10
