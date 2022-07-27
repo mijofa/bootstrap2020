@@ -611,7 +611,6 @@ with tempfile.TemporaryDirectory() as td:
             '--include=curl',  # Used in persephone_lounge-light
 
             '--include=wlr-randr',  # Wayland xrandr. Useful for debugging
-            '--include=ydotool',  # Wayland xdotool, needed only to hide the mouse in the bottom-right  FIXME: jellyfin-media-player or phoc should handle this
 
             '--include=swaybg',  # For setting Phoc's background image.   NOTE Has nothing to do with sway
             '--include=plymouth-themes',  # For custom bootup logo
@@ -633,6 +632,10 @@ with tempfile.TemporaryDirectory() as td:
 
             '--include=lvm2',  # So that Ron can recover some data from repuprosed system if necessary
 
+            # This needs to run before all the other customize-hooks as some of them rely on the files this brings in
+            # This can't be an essential-hook as it expects to replace file(s) that the above packages create
+            f'--customize-hook=tar-in {create_tarball("jellyfin-media-player")} /',
+
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
             '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev & uinput devices
@@ -651,8 +654,7 @@ with tempfile.TemporaryDirectory() as td:
             '--customize-hook=systemctl enable --quiet --system --root $1 phoc.service',
             '--customize-hook=systemctl enable --quiet --system --root $1 fix-uinput-perms.service',
             '--customize-hook=systemctl enable --quiet --user --global --root $1 jellyfinmediaplayer.service keybinds.service volnotifier.service',  # Should maybe only enable these for jellyfinuser?
-
-            f'--essential-hook=tar-in {create_tarball("jellyfin-media-player")} /']
+            ]
            if args.template == 'jellyfin-media-player' else []),
          'bullseye',
          destdir / 'filesystem.squashfs',

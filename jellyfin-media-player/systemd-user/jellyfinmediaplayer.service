@@ -15,11 +15,6 @@ Environment=PULSE_PROP="media.role=video"
 # NOTE: This script queries SRV records when a URL is not specified on the command line
 ExecStartPre=/usr/local/bin/set-jellyfin-server.py
 ExecStart=/usr/bin/jellyfinmediaplayer --terminal --tv --fullscreen
-# Hide the mouse cursor in the bottom-right
-# NOTE: Hardcodes a resolution max of 999999x999999,
-#       but if this code is still around when screens that large are mainstream I'd be impressed
-ExecStartPost=/bin/sleep 3
-ExecStartPost=-/usr/bin/ydotool mousemove 999999 999999
 
 ExecStopPost=/usr/bin/pacmd set-sink-volume combined 65536
 ExecStopPost=-/usr/local/bin/snapcontroller.py Group SetStream --stream_id "ch00 - Daily"
