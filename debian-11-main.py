@@ -593,9 +593,11 @@ with tempfile.TemporaryDirectory() as td:
             '    intel-media-va-driver-non-free',  # Intel, non-free, 2017+
             '--include=ir-keytable',   # infrared TV remote control
             '--include=v4l-utils',   # ir-ctl for *sending* IR signals
+            '--include=plymouth-themes',  # For custom bootup logo
+            # Workaround https://bugs.debian.org/1004001 (FIXME: fix upstream)
+            '--essential-hook=chroot $1 apt install -y fontconfig-config',
 
             # Having hardware support issues, let's just throw some firmware in and see if it helps
-            # UPDATE: It did not, but nothing got worse either
             '--include=firmware-linux-free firmware-linux firmware-linux-nonfree',  # Lots of generic firmware stuff, normally helps
             '--include=firmware-amd-graphics firmware-intel-sound',  # I don't think I'm using any of this hardware, but shouldn't hurt
             # NOTE: firmware-ivtv has an EULA that needs to be agreed to, rather than fixing that I'm just leaving it out
@@ -603,18 +605,12 @@ with tempfile.TemporaryDirectory() as td:
             '--include=firmware-realtek firmware-iwlwifi',  # WiFi firmwares needed for WiFi support on some hardware
             # I continued getting errors about failing to load iwlwifi firmware, but it worked.
             # it did *not* work without the firmware-iwlwifi package though,
-            # so I suspect it fellback on an firmware for an older chipset from the same package
+            # so I suspect it fellback on a firmware for an older chipset from the same package
             # '--include= atmel-firmware firmware-atheros firmware-libertas firmware-ti-connectivity',  # FIXME: Worth including these as well?
             '--include=firmware-sof-signed',  # Needed this for audio on my Lenovo ThinkPad Yoga when testing for WiFi dev
 
-            # I hoped this would improve support on 'beylix' in my room. But it only got worse
-            # '--include=v86d',
-            # '--customize-hook=echo "blacklist gma500_gfx" >$1/etc/modprobe.d/disable-gma500.conf',
-            # '--customize-hook=echo "options uvesafb mode_option=1280x1024-32" >$1/etc/modprobe.d/uvesafb.conf',
-            # '--customize-hook=echo "uvesafb" >>$1/etc/modules-load.d/uvesafb.conf',
-
             '--include=jellyfin-media-player',  # The whole point of this thing
-            '--include=python3-plyvel python3-dnspython',  # Needed for the Python snippet that pre-generates the jellyfin-media-player config
+            '--include=python3-plyvel python3-dnspython',  # Needed for set-jellyfin-server.py
             '--include=qtwayland5',  # Wayland support for jellyfin-media-player
 
             '--include=pulseaudio',  # Pulseaudio's role-corking makes pausing the music when movie starts a lot easier, pipewire does not have this feature
@@ -625,15 +621,10 @@ with tempfile.TemporaryDirectory() as td:
             '--include=avahi-daemon',  # Dependency of snapclient missing in control file
 
             '--include=python3-systemd',  # Used in some of my .py systemd units
-            '--include=curl',  # Used in persephone_lounge-light
 
-            '--include=wlr-randr',  # Wayland xrandr. Useful for debugging
             '--include=ydotool',  # Wayland xdotool, needed only to hide the mouse in the bottom-right  FIXME: jellyfin-media-player or phoc should handle this
 
             '--include=swaybg',  # For setting Phoc's background image.   NOTE Has nothing to do with sway
-            '--include=plymouth-themes',  # For custom bootup logo
-            # Workaround https://bugs.debian.org/1004001 (FIXME: fix upstream)
-            '--essential-hook=chroot $1 apt install -y fontconfig-config',
 
             # keybinds.py
             # A daemon that handles system keybindings such as volume +/-
@@ -652,22 +643,15 @@ with tempfile.TemporaryDirectory() as td:
 
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
-            '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev & uinput devices
+            '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev devices for keybinds.py
             '--customize-hook=chroot $1 adduser jellyfinuser video --quiet',  # For access to /dev/lirc0 device to send IR signals
 
-            # Make snapclient run as a user unit, not a system unit
-            '--customize-hook=systemctl disable --quiet --system --root $1 snapclient.service',
-            '--customize-hook=systemctl enable --quiet --user --global --root $1 snapclient.service',
+            '--customize-hook=systemctl disable --quiet --system --root $1 snapclient.service',  # We run snapclient as a user unit, not a system unit
 
-            # Enable the various systemd units used
+            # Ugly hacks to try and make Plymouth more seamless
             '--customize-hook=rm $1/lib/systemd/system/multi-user.target.wants/plymouth-quit.service',  # disable doesn't actually work because Debian created the symlink explicitly without putting "WantedBy" in the .service file
             '--customize-hook=systemctl mask --quiet --system --root $1 plymouth-quit-wait.service',  # This is a service that waits for plymouth to stop before allowing graphical.target to start, that gets stupidly in the way for us.
-
             '--customize-hook=systemctl enable --quiet --system --root $1 plymouth-quit.service',  # Instead of disabling plymouth, just have the stop unit start *after* phoc
-
-            '--customize-hook=systemctl enable --quiet --system --root $1 phoc.service',
-            '--customize-hook=systemctl enable --quiet --system --root $1 fix-uinput-perms.service',
-            '--customize-hook=systemctl enable --quiet --user --global --root $1 jellyfinmediaplayer.service keybinds.service volnotifier.service',  # Should maybe only enable these for jellyfinuser?
 
             f'--essential-hook=tar-in {create_tarball("jellyfin-media-player")} /']
            if args.template == 'jellyfin-media-player' else []),
