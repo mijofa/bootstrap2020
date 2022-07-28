@@ -12,9 +12,6 @@ After=systemd-user-sessions.service
 # If Plymouth is used, we want to start when it is on its way out.
 After=plymouth-quit-wait.service
 
-Wants=fix-uinput-perms.service
-After=fix-uinput-perms.service
-
 # D-Bus is necessary for contacting logind. Logind is required.
 Wants=dbus.socket
 After=dbus.socket
