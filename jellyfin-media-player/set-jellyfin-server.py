@@ -9,6 +9,7 @@ import shlex
 import subprocess
 import urllib.parse
 import urllib.request
+import uuid
 
 import dns.resolver
 import plyvel
@@ -19,6 +20,8 @@ import plyvel
 #       but removing them didn't work, so meh.
 CREDENTIALS_KEY = b'_file://\x00\x01jellyfin_credentials'
 AUTOLOGIN_KEY = b'_file://\x00\x01enableAutoLogin'
+# FIXME: Why the '2'?
+DEVICEID_KEY = b'_file://\x00\x01_deviceId2'
 
 
 def get_sorted_SRV(SRV):
@@ -150,11 +153,23 @@ if not local_storage_path.is_dir():
 
 # Write the data to it
 with contextlib.closing(plyvel.DB(os.fspath(local_storage_path / 'leveldb'), create_if_missing=True)) as leveldb:
-    # Doesn't overwrite pre-existing credentials data
+    # Doesn't overwrite pre-existing credentials data due to the nested leveldb.get
     leveldb.put(CREDENTIALS_KEY,
                 leveldb.get(CREDENTIALS_KEY,
                             # I don't understand leveldb or plyvel enough to comment on why the '\x01' is necessary, but it is
                             b'\x01' + json.dumps(jellyfin_credentials).encode()))
+    # Generate our own device ID here so that it is consistent across reboots.
+    # Otherwise Jelltfin will assign a new random device ID every time,
+    # making it impossible to keep track of the device sessions properly even with auto-logon.
+    # FIXME: I couldn't actually make sense of what Jellyfin's DeviceIDs actually are,
+    #        they're clearly not hex, but they are some form of GUID apparently.
+    #        they seem to be a random string of 76 alphanumeric characters, bother upper lower case.
+    #        b'\x01SmVsbHlmaW5NZWRpYVBsYXllciAxLjYuMSAobGludXgteDg2XzY0IDExKXwxNjYwMDM0ODE0NDA2'
+    # FIXME: It'd make more sense to use the uuid library for the whole thing,
+    #        but I don't know how to get a consistent uuid with that.
+    # FIXME: Maybe I should allow for this being set on the commandline along with UserId and AccessToken?
+    leveldb.put(DEVICEID_KEY, b'\x01' + (server_info['Id'] + 'bootstrap2020' + str(uuid.getnode())).encode())
+
     # This one does intentionally overwrite the pre-existing autologin option.
     # I do this because it's easy to accdientally, or even habitually, hit "remember me" on login.
     # The whole point of this system is to be a shared TV player,
