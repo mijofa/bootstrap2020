@@ -11,5 +11,12 @@ Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
 ExecStart=/usr/local/bin/volnotifier.py
 Restart=on-failure
 
+# By default this is 5.
+# There seems to be a race condition with some other service that I can't figure out,
+# something to do with theming it seems, causing this to fail to start.
+# Shitty workaround is just to keep restarting more until it works.
+# FIXME: Figure out the race-condition
+StartLimitBurst=15
+
 [Install]
 WantedBy=graphical-session.target
