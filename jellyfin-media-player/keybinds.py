@@ -72,6 +72,11 @@ GLOBAL_EVENT_MAPPING = {
             "if systemctl --user is-active video-output.target ; then systemctl --user stop --no-block video-output.target ; "
             "else systemctl --user start --no-block video-output.target ; fi",
             shell=True),
+
+        # Start the Steam Link app.
+        # Done as a systemd unit mostly for consistency, but there's no actual good reason for that.
+        # FIXME: Should this be a toggle maybe? Pressing 'back' enough times does exit Steam Link
+        evdev.ecodes.KEY_F11: lambda: subprocess.check_call(['systemctl', '--user', 'start', 'SteamLink']),
     },
 }
 
