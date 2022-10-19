@@ -10,7 +10,7 @@ kernel_cmdline = shlex.split(pathlib.Path('/proc/cmdline').read_text())
 # The cmdline will look something like this::
 #     initrd=http://bootserver/netboot/jellyfin-media-player-latest/initrd.img  panic=10 boot=live
 #     fetch=http://bootserver/netboot/jellyfin-media-player-latest/filesystem.squashfs  splash  --
-#     tasmota.video=mijofa-lounge-tv tasmota.audio=mijofa-lounge-speakers tasmota.lighting=mijofa-lounge-light
+#     tasmota.video=mijofa-lounge-tv tasmota.audio=mijofa-lounge-speakers
 
 tasmota_devices = {}
 
@@ -31,18 +31,15 @@ parser.add_argument('device_type', choices=tasmota_devices.keys(), type=str,
                     help="Control the given type of device, kernel cmdline is used to determine the device's hostname")
 
 # NOTE: Video & Audio each need power on, off, and toggle actions,
-#       Lighting needs dimmer values or an event to trigger.
 #       Alternatively, trigger events on everything and leave any & all config up to the Tasmota device itself?
 parser.add_argument('--event', type=str,
                     help="Trigget the given event")
-parser.add_argument('--dimmer', type=int,
-                    help="Run the 'dimmer' command with the given argument")
 parser.add_argument('--power', choices=['On', 'Off', 'Toggle'], type=str,
                     help="Run the 'power' command with the given argument")
 # FIXME: Include colour command
 
 args = parser.parse_args()
-if args.event == args.dimmer == args.power == None:  # noqa: E711
+if args.event == args.power == None:  # noqa: E711
     # NOTE: This exits the same as parse_args() would if there was a parsing error
     parser.error("At least one action argument is required.")
 
