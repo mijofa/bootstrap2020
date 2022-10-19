@@ -613,7 +613,7 @@ with tempfile.TemporaryDirectory() as td:
             '--include=python3-plyvel python3-dnspython',  # Needed for set-jellyfin-server.py
             '--include=qtwayland5',  # Wayland support for jellyfin-media-player
 
-            '--include=pulseaudio',  # Pulseaudio's role-corking makes pausing the music when movie starts a lot easier, pipewire does not have this feature
+            '--include=pulseaudio',  # Pulseaudio's role-corking makes pausing the music when movie starts a lot easier, pipewire does not seem to have this feature
             # FIXME: Just change the PA config to what I actually want rather than using pacmd in override.conf
             '--customize-hook=sed -i "/module-role-cork/ s/^load/#load/" $1/etc/pulse/default.pa',  # Disable role corking because the default config sucks, we enable it later in a systemd override.conf
 
@@ -630,6 +630,8 @@ with tempfile.TemporaryDirectory() as td:
             '--include=python3-psutil',  # Used by snapcontroller.py to get the local mac address
             '--include=python3-gi gir1.2-notify-0.7 gir1.2-gtk-3.0',  # Libraries for notifyd & gtk icons
             '--include=mako-notifier',  # Notification daemon that supports Wayland
+
+            '--include=sound-icons',  # Generic sound effects, used to notify when turning speakers/TV on/off
 
             '--include=grim',  # Wayland screenshot utility, not really using it yet but would like to
 
