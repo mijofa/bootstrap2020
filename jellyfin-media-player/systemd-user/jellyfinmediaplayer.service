@@ -18,6 +18,7 @@ ExecStart=/usr/bin/jellyfinmediaplayer --terminal --tv --fullscreen
 
 ExecStopPost=/usr/bin/pacmd set-sink-volume combined 65536
 ExecStopPost=-/usr/local/bin/snapcontroller.py Group SetStream --stream_id "ch00 - Daily"
+ExecStopPost=-systemctl --user stop SteamLink
 
 Restart=on-failure
 

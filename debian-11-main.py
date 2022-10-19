@@ -641,6 +641,12 @@ with tempfile.TemporaryDirectory() as td:
 
             '--include=lvm2',  # So that Ron can recover some data from repuprosed system if necessary
 
+            # Steam Link
+            '--include=flatpak',  # The offical Steam Link app is a flatpak, so just use that because CBFed doing it myself
+            '--include=steam-devices',  # Some udev rules to theoretically help with Steam Controller support
+            '--customize-hook=chroot $1 flatpak --system install --assumeyes --noninteractive --from https://dl.flathub.org/repo/appstream/com.valvesoftware.SteamLink.flatpakref',
+            # FIXME: This has errors and apparently fails to install the Nvidia dependencies... but works anyway? O.o
+
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
             '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev devices for keybinds.py
