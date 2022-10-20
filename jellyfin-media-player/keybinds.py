@@ -15,6 +15,7 @@ import time
 import traceback
 
 import evdev
+import pyudev
 
 import snapcontroller
 
@@ -208,7 +209,24 @@ def increment_snap_channel(increment):
     notif.show()
 
 
+def udev_event_handler(async_loop, action: str, udev_dev: pyudev.Device):
+    """Handle udev events for new devices."""
+    if action == 'add' and udev_dev.device_node and udev_dev.device_node in evdev.list_devices():
+        evdev_dev = evdev.InputDevice(udev_dev.device_node)
+        if is_device_capable(evdev_dev.capabilities(), GLOBAL_EVENT_MAPPING):
+            asyncio.ensure_future(handle_events(evdev_dev, GLOBAL_EVENT_MAPPING), loop=async_loop)
+
+
 if __name__ == '__main__':
+    # Set up for noticing new evdev devices
+    async_loop = asyncio.get_event_loop()
+
+    udev_context = pyudev.Context()
+    udev_monitor = pyudev.Monitor.from_netlink(udev_context)
+    udev_observer = pyudev.MonitorObserver(udev_monitor, lambda action, udev_dev: udev_event_handler(async_loop, action, udev_dev))
+    udev_observer.start()
+
+    # Start monitoring all current evdev devices
     for dev in get_all_capable_devices(GLOBAL_EVENT_MAPPING):
         asyncio.ensure_future(handle_events(dev, GLOBAL_EVENT_MAPPING))
 
