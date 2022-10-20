@@ -5,18 +5,16 @@
 # So this unit should, in theory, start tasmota-audio.service on stop, and stop it on start
 # FIXME: Wait, what happens with this service on shutdown?
 [Unit]
-Description=invert audio-mute.target state for tasmota-audio.service
-Before=tasmota-audio.service
+Description=invert audio-mute.target state for audio-output.target
+Before=tasmota-audio.service audio-output.target
 PartOf=audio-muted.target
-
-ConditionKernelCommandLine=tasmota.audio
 
 [Service]
 Type=oneshot
 RemainAfterExit=true
 
-ExecStart=systemctl --user stop --no-block tasmota-audio.service
-ExecStop=systemctl --user start --no-block tasmota-audio.service
+ExecStart=systemctl --user stop --no-block audio-output.target
+ExecStop=systemctl --user start --no-block audio-output.target
 
 [Install]
 WantedBy=audio-muted.target

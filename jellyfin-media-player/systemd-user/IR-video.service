@@ -1,6 +1,7 @@
 [Unit]
 Description=Control state of TV via IR transmitter
 BindsTo=video-output.target
+Requires=audible-ping-subtle@video.service
 
 ConditionKernelCommandLine=!tasmota.video
 
