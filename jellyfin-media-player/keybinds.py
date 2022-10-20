@@ -122,18 +122,24 @@ def get_all_capable_devices(needed_caps: dict):
 async def handle_events(dev, event_mapping):
     """Handle the given events for the given device."""
     print('Registering input device', dev.name)
-    async for event in dev.async_read_loop():
-        if event.type in event_mapping.keys() and \
-                event.code in event_mapping[event.type] and \
-                event.value:
-            print("Processing trigger for", evdev.categorize(event))
-            try:
-                event_mapping[event.type][event.code]()
-            except:  # noqa: E722 "do not use bare 'except'"
-                # Report errors, but don't stop the loop for them
-                print(traceback.format_exc(), file=sys.stderr)
-        # elif event.type != evdev.ecodes.EV_SYN:
-        #     print("Ignoring", evdev.categorize(event))
+    try:
+        async for event in dev.async_read_loop():
+            if event.type in event_mapping.keys() and \
+                    event.code in event_mapping[event.type] and \
+                    event.value:
+                print("Processing trigger for", evdev.categorize(event))
+                try:
+                    event_mapping[event.type][event.code]()
+                except:  # noqa: E722 "do not use bare 'except'"
+                    # Report errors, but don't stop the loop for them
+                    print(traceback.format_exc(), file=sys.stderr)
+            # elif event.type != evdev.ecodes.EV_SYN:
+            #     print("Ignoring", evdev.categorize(event))
+    except OSError as e:
+        if e.errno == 19:
+            print("Looks like device was removed, stopping event handling")
+        else:
+            raise
 
 
 inputSocket = None
