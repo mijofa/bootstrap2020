@@ -625,10 +625,10 @@ with tempfile.TemporaryDirectory() as td:
             '--include=lvm2',  # So that Ron can recover some data from repuprosed system if necessary
 
             # Steam Link
+            # Don't actually install the Steam Link app here as it doubles the size of the SOE,
+            # just install the necessary packages for the flatpaks to be installed on the boot media.
             '--include=flatpak',  # The offical Steam Link app is a flatpak, so just use that because CBFed doing it myself
             '--include=steam-devices',  # Some udev rules to theoretically help with Steam Controller support
-            '--customize-hook=chroot $1 flatpak --system install --assumeyes --noninteractive --from https://dl.flathub.org/repo/appstream/com.valvesoftware.SteamLink.flatpakref',
-            # FIXME: This has errors and apparently fails to install the Nvidia dependencies... but works anyway? O.o
 
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',

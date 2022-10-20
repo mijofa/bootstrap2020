@@ -6,6 +6,8 @@ After=pulseaudio.service swaybg.service
 # unless I can make it start when a game controller is plugged in or something like that?
 Requires=audible-toggle-unsubtle@SteamLink.service
 
+ConditionPathExists=/var/lib/flatpak/app/com.valvesoftware.SteamLink
+
 [Service]
 # Qt defaults to X11 unless told otherwise, and does not fallback on Wayland when that fails
 # FIXME: This should be set for the entire session, not just this service
