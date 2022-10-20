@@ -78,6 +78,9 @@ GLOBAL_EVENT_MAPPING = {
         # Done as a systemd unit mostly for consistency, but there's no actual good reason for that.
         # FIXME: Should this be a toggle maybe? Pressing 'back' enough times does exit Steam Link
         evdev.ecodes.KEY_F11: lambda: subprocess.check_call(['systemctl', '--user', 'start', 'SteamLink']),
+
+        # Steam button on the Steam Controller
+        316: lambda: subprocess.check_call(['systemctl', '--user', 'start', 'SteamLink']),
     },
 }
 
