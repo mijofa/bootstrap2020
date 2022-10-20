@@ -1,0 +1,11 @@
+[Unit]
+Description=Audible notification of something happening
+Requires=pulseaudio.service
+StopWhenUnneeded=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+ExecStart=pactl play-sample bell
+ExecStop=pactl play-sample bell
