@@ -614,7 +614,7 @@ with tempfile.TemporaryDirectory() as td:
             '--include=python3-gi gir1.2-notify-0.7 gir1.2-gtk-3.0',  # Libraries for notifyd & gtk icons
             '--include=mako-notifier',  # Notification daemon that supports Wayland
 
-            '--include=sound-icons',  # Generic sound effects, used to notify when turning speakers/TV on/off
+            '--include=sound-theme-freedesktop',  # Generic sound effects, used to notify when turning speakers/TV on/off
 
             '--include=grim',  # Wayland screenshot utility, not really using it yet but would like to
 

@@ -4,6 +4,8 @@ Requires=pulseaudio.service
 After=pulseaudio.service
 PartOf=pulseaudio.service
 
+BindsTo=audio-output.target
+
 ConditionKernelCommandLine=tasmota.audio
 
 [Service]
@@ -20,4 +22,4 @@ ExecStop=tasmota_controller.py  --power Off audio
 Restart=on-failure
 
 [Install]
-WantedBy=pulseaudio.service
+WantedBy=pulseaudio.service audio-output.target

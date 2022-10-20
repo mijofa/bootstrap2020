@@ -10,7 +10,12 @@ ConditionKernelCommandLine=tasmota.video
 Type=oneshot
 RemainAfterExit=true
 
-ExecStart=systemctl --user --global add-wants jellyfinmediaplayer.service tasmota-video
+ExecStart=systemctl --user --global add-wants jellyfinmediaplayer.service tasmota-video.service
+# Dependencies such as wants/requires are handled regardless of the ConditionKernelCommandLine
+# so disable IR-video here to make sure that the audible notification for IR-video never triggers
+ExecStart=systemctl --user --global disable IR-video.service
+# The same thing would happen the other way around with the tasmota-video one though, so enable that here
+ExecStart=systemctl --user --global add-wants tasmota-video.service audible-toggle-subtle@video.service
 ExecStop=rm -v /etc/systemd/user/jellyfinmediaplayer.service.wants/tasmota-video.service
 
 # NOTE: This runs before phoc, so the user's sytemd daemon shouldn't need reloading... But if it does, this *should* do the trick:
