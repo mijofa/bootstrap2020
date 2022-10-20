@@ -610,6 +610,8 @@ with tempfile.TemporaryDirectory() as td:
             # keybinds.py
             # A daemon that handles system keybindings such as volume +/-
             '--include=python3-evdev',  # The library I use to get the keypresses
+            '--include=python3-pyudev',  # Used to identify new devices when they come in
+
             '--include=python3-psutil',  # Used by snapcontroller.py to get the local mac address
             '--include=python3-gi gir1.2-notify-0.7 gir1.2-gtk-3.0',  # Libraries for notifyd & gtk icons
             '--include=mako-notifier',  # Notification daemon that supports Wayland
