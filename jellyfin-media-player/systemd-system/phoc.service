@@ -7,8 +7,6 @@ Description=Phosh, a Wayland compositor
 Requires=network-online.target
 After=network-online.target
 
-After=apply_persephone_config.target
-
 # Make sure we are started after logins are permitted.
 After=systemd-user-sessions.service
 # If Plymouth is used, we want to start when it is on its way out.
