@@ -1,7 +1,7 @@
 [Unit]
 Description=Equivalent of PulseAudio's "module-role-cork" that stop/starts a systemd target instead
 Wants=pulseaudio.service
-After=pulseaudio.service snapclient.service
+After=pulseaudio.service snapclient.service steam.service discord.service
 PartOf=pulseaudio.service
 
 [Service]
