@@ -196,6 +196,11 @@ def increment_snap_channel(increment):
     notif.set_property('summary', 'Snapclient music')
     notif.set_timeout(NOTIFICATION_TIMEOUT)
 
+    # Not using .run or .check_call here because I wanted to ensure it runs in the background as we continue on.
+    # FIXME: Should only really notify if we successfully connect and send the instruction.
+    #        But that can take so long that it's annoying and defeats the purpose of the notification
+    subprocess.Popen(['pactl', 'play-sample', 'device-added' if increment > 0 else 'device-removed'])
+
     with snapcontroller.SnapController() as snap:
         snap_group = snap.get_group_of_client(snapcontroller.get_physical_mac())
         current_stream = snap.run_command('Group.GetStatus', params={'id': snap_group})['group']['stream_id']
