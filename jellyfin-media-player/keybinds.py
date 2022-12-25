@@ -13,6 +13,7 @@ import subprocess
 import sys
 import time
 import traceback
+import typing
 
 import evdev
 import pyudev
@@ -26,8 +27,10 @@ from gi.repository import Notify  # noqa: E402 "module level import not at top o
 NOTIFICATION_TIMEOUT = 2000  # Same as volnotifier
 
 # NOTE: The workflow of this code easily allows for per-device event maps, but that's not very useful
+# FIXME: Add a blacklist of device IDs so I can (for example) ignore the uinput controller from the Steam Link app
 # FIXME: This is mostly pulseaudio & systemd triggers, just do them in Python instead of calling out via subprocess?
 #        I'll probably be adding mpd/mpc calls, and maybe some snapcast stuff, which can all also be done in Python.
+# FIXME: These should all be async futures/coroutines/something
 GLOBAL_EVENT_MAPPING = {
     evdev.ecodes.EV_KEY: {
         evdev.ecodes.KEY_MUTE: lambda: subprocess.check_call(['pactl', 'set-sink-mute', 'combined', 'toggle']),
@@ -114,16 +117,6 @@ def is_device_capable(dev_caps: dict, needed_caps: dict):
     return False
 
 
-def get_all_capable_devices(needed_caps: dict):
-    """Get all evdev input devices that have the required capabilities."""
-    for dev_path in evdev.list_devices():
-        dev = evdev.InputDevice(dev_path)
-        if is_device_capable(dev.capabilities(), needed_caps):
-            yield dev
-        else:
-            dev.close()
-
-
 async def handle_events(dev, event_mapping):
     """Handle the given events for the given device."""
     print('Registering input device', dev.name)
@@ -178,7 +171,7 @@ async def send_to_inputSocket(keycode, source="Keyboard", client=sys.argv[0]):
         open_inputSocket()
 
     try:
-        await loop.sock_sendall(inputSocket, data.encode())
+        await asyncio.get_event_loop().sock_sendall(inputSocket, data.encode())
     except (OSError, BrokenPipeError) as e:
         if not (isinstance(e, OSError) and e.errno == 107) and \
                 not (isinstance(e, BrokenPipeError) and e.errno == 32):
@@ -186,7 +179,7 @@ async def send_to_inputSocket(keycode, source="Keyboard", client=sys.argv[0]):
             raise
 
         if open_inputSocket():
-            await loop.sock_sendall(inputSocket, data.encode())
+            await asyncio.get_event_loop().sock_sendall(inputSocket, data.encode())
         else:
             print("Socket not connected, can't send data", keycode, file=sys.stderr)
 
@@ -218,33 +211,45 @@ def increment_snap_channel(increment):
     notif.show()
 
 
-def udev_event_handler(async_loop, action: str, udev_dev: pyudev.Device):
-    """Handle udev events for new devices."""
-    # FIXME: The new event handler doesn't actually start listening until one of the other ones is triggered at all.
-    #        I think this is because of how badly I'm using asyncio, ref: https://github.com/pyudev/pyudev/issues/450
-    #        Alternative using inotify instead of pyudev: https://github.com/gvalkov/python-evdev/issues/99#issuecomment-480193058
-    if action == 'add' and udev_dev.device_node and udev_dev.device_node in evdev.list_devices():
-        evdev_dev = evdev.InputDevice(udev_dev.device_node)
-        if is_device_capable(evdev_dev.capabilities(), GLOBAL_EVENT_MAPPING):
-            asyncio.ensure_future(handle_events(evdev_dev, GLOBAL_EVENT_MAPPING), loop=async_loop)
+# ref: https://github.com/pyudev/pyudev/issues/450#issuecomment-1078863332
+async def iter_monitor_devices(context: pyudev.Context, **kwargs) -> typing.AsyncGenerator[pyudev.Device, None]:
+    """Yield all udev devices and continue monitoring for device changes."""
+    for device in context.list_devices(**kwargs):
+        yield device
+
+    monitor = pyudev.Monitor.from_netlink(context)
+    monitor.filter_by(**kwargs)
+    monitor.start()
+    fd = monitor.fileno()
+    read_event = asyncio.Event()
+    loop = asyncio.get_event_loop()
+    loop.add_reader(fd, read_event.set)
+    try:
+        while True:
+            await read_event.wait()
+            while True:
+                device = monitor.poll(0)
+                if device is not None:
+                    yield device
+                else:
+                    read_event.clear()
+                    break
+    finally:
+        loop.remove_reader(fd)
+
+
+async def main():
+    """Initialize everything and run event loops for each input device as they appear."""
+    Notify.init(sys.argv[0])
+
+    udev_context = pyudev.Context()
+    async for udev_dev in iter_monitor_devices(udev_context, subsystem='input'):
+        if udev_dev.device_node and udev_dev.device_node in evdev.list_devices():
+            evdev_dev = evdev.InputDevice(udev_dev.device_node)
+            if is_device_capable(evdev_dev.capabilities(), GLOBAL_EVENT_MAPPING):
+                asyncio.ensure_future(handle_events(evdev_dev, GLOBAL_EVENT_MAPPING))
 
 
 if __name__ == '__main__':
-    # Set up for noticing new evdev devices
-    async_loop = asyncio.get_event_loop()
-
-    udev_context = pyudev.Context()
-    udev_monitor = pyudev.Monitor.from_netlink(udev_context)
-    udev_observer = pyudev.MonitorObserver(udev_monitor, lambda action, udev_dev: udev_event_handler(async_loop, action, udev_dev))
-    udev_observer.start()
-
-    # Start monitoring all current evdev devices
-    for dev in get_all_capable_devices(GLOBAL_EVENT_MAPPING):
-        asyncio.ensure_future(handle_events(dev, GLOBAL_EVENT_MAPPING))
-
-    Notify.init(sys.argv[0])
-
-    loop = asyncio.get_event_loop()
-    loop.run_forever()
-
+    asyncio.run(main())
     # NOTE: I'm not explicitly closing the used evdev devices, but the garbage collector should take care of them.
