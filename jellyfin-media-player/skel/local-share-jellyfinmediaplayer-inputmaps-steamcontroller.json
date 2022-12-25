@@ -1,0 +1,69 @@
+// Loosely based on xbox-controller-linux
+{
+  "name": "Wireless Steam Controller",
+  // FIXME: how does idmatcher work?
+  "idmatcher": "Steam Controller",
+  "mapping": {
+    // A
+    "KEY_BUTTON_2": "enter",
+    // B
+    "KEY_BUTTON_3": {"short": "back", "long": "home"},
+    // X
+    "KEY_BUTTON_4": "cycle_audio",
+    // Y
+    // FIXME: Can't just do both, because search will exit the current media
+    "KEY_BUTTON_5": {"short": "cycle_subtitle", "long": "search"},
+
+    // LB
+    "KEY_BUTTON_6": "seek_backward",
+    // RB
+    "KEY_BUTTON_7": "seek_forward",
+    // NOTE: The triggers are dual-stage, so they have an axis, then a clicky button after reaching full axis
+    // LT
+    "KEY_HAT_DOWN": "",
+    "KEY_BUTTON_8": "",
+    // RT
+    "KEY_HAT_RIGHT": "",
+    "KEY_BUTTON_9": "",
+    // LG
+    "KEY_BUTTON_15": "previouschapter",
+    // RG
+    "KEY_BUTTON_16": "nextchapter",
+
+    // Back
+    "KEY_BUTTON_10":{"short": "back", "long": "home"},
+    // Steam button  // FIXME: Ignore this and leave it with keybinds.py?
+    // FIXME: As far as I can tell, 'exit' does nothing, but I've copied it from the Xbox config for now anyway
+    "KEY_BUTTON_12": {"short": "home", "long": "exit"},
+    // Start
+    "KEY_BUTTON_11": "pause",
+
+    // // D-PAD / left touchpad
+    "KEY_BUTTON_0": "",
+    // directions
+    "KEY_BUTTON_17": "up",
+    "KEY_BUTTON_18": "down",
+    "KEY_BUTTON_19": "left",
+    "KEY_BUTTON_20": "right",
+    // FIXME: Press was being weird, but I **think** it was "KEY_HAT_", yet that was also triggering at other times too
+
+    // // Left thumbstick
+    "KEY_AXIS_0_UP": "left",
+    "KEY_AXIS_0_DOWN": "right",
+    "KEY_AXIS_1_UP": "up",
+    "KEY_AXIS_1_DOWN": "down",
+    // press
+    "KEY_BUTTON_13": "host:toggleDebug",
+
+    // // right touchpad
+    // tap
+    "KEY_BUTTON_1": "",
+    // directions
+    "KEY_AXIS_3_UP": "up",
+    "KEY_AXIS_3_DOWN": "down",
+    "KEY_AXIS_2_UP": "left",
+    "KEY_AXIS_2_DOWN": "right",
+    // press
+    "KEY_BUTTON_14": "host:fullscreen"
+  }
+}
