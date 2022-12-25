@@ -1,12 +1,9 @@
 [Unit]
-Description=flatpak squashfs for Steam Link
-
-ConditionPathExists=/run/live/medium/var-lib-flatpak.squashfs
+Description=flatpak filesystem for generic user-managable apps
 
 [Mount]
-What=/run/live/medium/var-lib-flatpak.squashfs
+What=/dev/disk/by-partlabel/flatpak
 Where=/var/lib/flatpak
-Type=squashfs
 
 [Install]
 WantedBy=graphical.target
