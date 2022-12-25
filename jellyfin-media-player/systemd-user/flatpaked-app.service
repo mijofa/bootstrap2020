@@ -1,28 +1,31 @@
 [Unit]
-Description=Steam Link client
+Description=Generic user-manager Flatpak app
 Wants=pulseaudio.service swaybg.service
 After=pulseaudio.service swaybg.service
 # This should never be started automatically,
 # unless I can make it start when a game controller is plugged in or something like that?
-Requires=audible-toggle-unsubtle@SteamLink.service
+Requires=audible-toggle-unsubtle@flatpak-app.service
 
-ConditionPathExists=/var/lib/flatpak/app/com.valvesoftware.SteamLink
+ConditionPathExists=/var/lib/flatpak/app/
 
 [Service]
+Type=forking
 # Qt defaults to X11 unless told otherwise, and does not fallback on Wayland when that fails
 # FIXME: This should be set for the entire session, not just this service
 Environment=XDG_SESSION_TYPE=wayland
 # Let pulseaudio "cork" other streams properly
-Environment=PULSE_PROP="media.role=game"
-# NOTE: $HOME/.var is a hardcoded path and can't be configured with environment variables anyway.
+# FIXME: Not necessarily a game, but that's probably the best guess anyway, so stick with it.
+Environment=PULSE_PROP='media.role=game'
+# NOTE: $HOME/.var/app is a hardcoded path and can't be configured with environment variables anyway.
 #       I believe this is a limitation within flatpak itself, I can't do anything about it.
-ExecStartPre=bash -c '[[ -d /run/live/medium/config/com.valvesoftware.SteamLink && ! -d $HOME/.var/app/com.valvesoftware.SteamLink ]] || exit 0 && mkdir -vp $HOME/.var/app/ && cp -rv /run/live/medium/config/com.valvesoftware.SteamLink $HOME/.var/app/'
-ExecStart=flatpak run com.valvesoftware.SteamLink
+ExecStartPre=bash -c '{ [[ -d $HOME/.var/app/ ]] || [[ -L $HOME/.var/app/ ]] ; } && exit 0 ; [[ -d /var/lib/flatpak/user-var-app/ ]] && mkdir -vp /var/lib/flatpak/user-var-app/$USER $HOME/.var && ln -vs /var/lib/flatpak/user-var-app/$USER $HOME/.var/app'
+ExecStart=python3 -c 'import glob; from gi.repository import Gio; Gio.DesktopAppInfo.new_from_filename(glob.glob("/var/lib/flatpak/exports/share/applications/*.desktop")[0]).launch()'
 # FIXME: Doesn't actually work properly as a systemd unit
 #        flatpak seems to somehow escape supervision by systemd where it has (at least) 2 bwrap processes and only one of them is known by systemd
 #        Running flatpak-kill here is enough to stop the whole thing properly,
 #        but this does cause other issues like the logs not all being properly associated with this unit.
 #        Setting "Type=forking" doesn't help because that expects the parent process to go away, which it never does.
-ExecStop=-flatpak kill com.valvesoftware.SteamLink
+# FIXME: Only works with 1 flatpak app running at a time
+ExecStop=-bash -c 'flatpak kill -v  $(flatpak ps | cut -f3)'
 
 Restart=no

@@ -74,13 +74,14 @@ GLOBAL_EVENT_MAPPING = {
             "else systemctl --user start --no-block video-output.target ; fi",
             shell=True),
 
-        # Start the Steam Link app.
+        # Start the Flatpak app.
+        # This could be a different app on each "site", I use Steam Link, but I'm also testing with RetroArch and Minecraft
         # Done as a systemd unit mostly for consistency, but there's no actual good reason for that.
         # FIXME: Should this be a toggle maybe? Pressing 'back' enough times does exit Steam Link
-        evdev.ecodes.KEY_F11: lambda: subprocess.check_call(['systemctl', '--user', 'start', 'SteamLink']),
+        evdev.ecodes.KEY_F11: lambda: subprocess.check_call(['systemctl', '--user', 'start', 'flatpak-app']),
 
         # Steam button on the Steam Controller
-        316: lambda: subprocess.check_call(['systemctl', '--user', 'start', 'SteamLink']),
+        316: lambda: subprocess.check_call(['systemctl', '--user', 'start', 'flatpak-app']),
     },
 }
 
@@ -219,6 +220,9 @@ def increment_snap_channel(increment):
 
 def udev_event_handler(async_loop, action: str, udev_dev: pyudev.Device):
     """Handle udev events for new devices."""
+    # FIXME: The new event handler doesn't actually start listening until one of the other ones is triggered at all.
+    #        I think this is because of how badly I'm using asyncio, ref: https://github.com/pyudev/pyudev/issues/450
+    #        Alternative using inotify instead of pyudev: https://github.com/gvalkov/python-evdev/issues/99#issuecomment-480193058
     if action == 'add' and udev_dev.device_node and udev_dev.device_node in evdev.list_devices():
         evdev_dev = evdev.InputDevice(udev_dev.device_node)
         if is_device_capable(evdev_dev.capabilities(), GLOBAL_EVENT_MAPPING):
