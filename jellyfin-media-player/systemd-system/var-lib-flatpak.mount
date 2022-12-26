@@ -1,5 +1,6 @@
 [Unit]
 Description=flatpak filesystem for generic user-managable apps
+# FIXME: Use a .automount unit, and if possible, have it unmount after a period of inactivity.
 
 [Mount]
 What=/dev/disk/by-partlabel/flatpak
