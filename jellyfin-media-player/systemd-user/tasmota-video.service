@@ -6,11 +6,14 @@ BindsTo=video-output.target
 ConditionKernelCommandLine=tasmota.video
 
 [Service]
-Type=oneshot
-RemainAfterExit=true
+Type=notify
+
+# Python3 defaults to quite a large buffer for stdout/stderr.
+# This makes the journal significantly less useful for debugging because the log messages don't appear immediately.
+Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
 
 ExecStop=tasmota_controller.py  --power Off video
-ExecStart=tasmota_controller.py --power On  video
+ExecStart=tasmota_controller.py --power-on-wait video
 ExecStartPost=sleep 9
 # If the TV's state somehow gets out of sync, we'll need a Reload while the power is on
 ExecReload=ir-ctl --send=/etc/TV_power.ir

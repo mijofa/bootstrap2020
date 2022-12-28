@@ -1,10 +1,14 @@
 #!/usr/bin/python3
 """Control specific Tasmota devices depending on the kernel command line parameters."""
-import shlex
-import pathlib
 import argparse
-import urllib.request
+import json
+import pathlib
+import shlex
+import time
 import urllib.parse
+import urllib.request
+
+import systemd.daemon
 
 kernel_cmdline = shlex.split(pathlib.Path('/proc/cmdline').read_text())
 # The cmdline will look something like this::
@@ -36,28 +40,54 @@ parser.add_argument('--event', type=str,
                     help="Trigget the given event")
 parser.add_argument('--power', choices=['On', 'Off', 'Toggle'], type=str,
                     help="Run the 'power' command with the given argument")
+parser.add_argument('--power-on-wait', action='store_const', const=True,
+                    help="Run the 'power on' command, and wait for it to power back off")
 # FIXME: Include colour command
 
 args = parser.parse_args()
-if args.event == args.power == None:  # noqa: E711
+if args.event == args.power == args.power_on_wait == None:  # noqa: E711
     # NOTE: This exits the same as parse_args() would if there was a parsing error
     parser.error("At least one action argument is required.")
 
-
 device_url = f'http://{tasmota_devices[args.device_type]}/cm'
-# A list of all actions and their argument as a string
-action_args = [(k, str(v)) for k, v in vars(args).items() if k != 'device_type' and v is not None]
 
-if len(action_args) == 1:
-    # If there's only one action, just run that
-    cmnd = ' '.join(action_args[0])
+if args.power_on_wait and (args.event or args.power):
+    # FIXME: Do this properly
+    parser.error("power-on-wait is a mutually exclusive argument.")
+elif args.power_on_wait:
+    # Do power on http request
+    # FIXME: Should I json decode the response to give an error response if there's an error in the json?
+    post_data = urllib.parse.urlencode({'cmnd': "Power On"}).encode()
+    with urllib.request.urlopen(device_url, data=post_data) as response:
+        print(response.read().decode())
+
+    systemd.daemon.notify('READY=1')
+
+    query_data = urllib.parse.urlencode({'cmnd': "Status"}).encode()
+    while response := urllib.request.urlopen(device_url, data=query_data):
+        status = json.loads(response.read().decode()).get('Status')
+        print(status)
+        if not bool(status.get('Power')):
+            # Device is off, break here
+            systemd.daemon.notify('STOPPING=1')
+            break
+        else:
+            # NOTE: The Tasmota web console view queries every 3s, so presumably that dev team has decided 3s is slow enough
+            time.sleep(5)
 else:
-    # If there's more than one action, we need to turn that into a backlog command
-    cmnd = 'BACKLOG '
-    cmnd += ' ; '.join([' '.join(c) for c in action_args])
+    # A list of all actions and their argument as a string
+    action_args = [(k, str(v)) for k, v in vars(args).items() if k != 'device_type' and v is not None]
 
-# Do the actual http request
-# FIXME: Should I json decode the response to give an error response if there's an error in the json?
-post_data = urllib.parse.urlencode({'cmnd': cmnd}).encode()
-with urllib.request.urlopen(device_url, data=post_data) as response:
-    print(response.read().decode())
+    if len(action_args) == 1:
+        # If there's only one action, just run that
+        cmnd = ' '.join(action_args[0])
+    else:
+        # If there's more than one action, we need to turn that into a backlog command
+        cmnd = 'BACKLOG '
+        cmnd += ' ; '.join([' '.join(c) for c in action_args])
+
+    # Do the actual http request
+    # FIXME: Should I json decode the response to give an error response if there's an error in the json?
+    post_data = urllib.parse.urlencode({'cmnd': cmnd}).encode()
+    with urllib.request.urlopen(device_url, data=post_data) as response:
+        print(response.read().decode())
