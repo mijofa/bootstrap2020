@@ -8,6 +8,10 @@ BindsTo=audio-output.target
 
 ConditionKernelCommandLine=tasmota.audio
 
+# Had to copy this condition from pulseaudio.service to stop it from triggering every time I log in/out over SSH
+# NOTE: I think this is only relevant when using openssh-server, which has caused some other annoyances anyway, so maybe just don't do that
+ConditionUser=!root
+
 [Service]
 Type=notify
 
