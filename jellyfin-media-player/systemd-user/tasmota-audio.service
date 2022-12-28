@@ -9,14 +9,17 @@ BindsTo=audio-output.target
 ConditionKernelCommandLine=tasmota.audio
 
 [Service]
-Type=oneshot
-RemainAfterExit=true
+Type=notify
+
+# Python3 defaults to quite a large buffer for stdout/stderr.
+# This makes the journal significantly less useful for debugging because the log messages don't appear immediately.
+Environment=PYTHONUNBUFFERED=LiterallyAnyNonZeroString
 
 # Refuse start if audio is muted
 # Does not make it *stop* when audio mutes
 ExecCondition=sh -c 'systemctl --user is-active audio-muted.target || exit 0 && exit 1'
 
-ExecStart=tasmota_controller.py --power On  audio
+ExecStart=tasmota_controller.py --power-on-wait audio
 ExecStop=tasmota_controller.py  --power Off audio
 
 Restart=on-failure
