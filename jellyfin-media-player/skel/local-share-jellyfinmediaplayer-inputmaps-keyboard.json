@@ -1,7 +1,4 @@
-// All possible commands are listed at https://github.com/jellyfin/jellyfin-web/blob/master/src/scripts/inputManager.js
-// And JMP specific ones here (really just the host: ones): https://github.com/jellyfin/jellyfin-media-player/blob/master/src/input/InputComponent.cpp
-// FIXME: Investigate replacing most of keybinds.py with runUserScript here: https://github.com/jellyfin/jellyfin-media-player/blob/master/src/system/SystemComponent.cpp
-//        I believe that requires setting the config to "TV" mode, and then explicitly mapping **every** required key, rather than relying on upstream's defaults
+// All possible commands are listed at https://github.com/jellyfin/jellyfin-web/blob/5c09077a2f12ae44e7b7d356ea8d9f35862b0b60/src/scripts/inputManager.js
 {
   "name": "Keyboard Generic",
   "idmatcher": "Keyboard.*",
