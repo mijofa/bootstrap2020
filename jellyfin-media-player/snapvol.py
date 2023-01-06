@@ -86,13 +86,21 @@ if __name__ == '__main__':
     pulse_bus = dbus.connection.Connection(get_pulse_bus_address())
     pulse_core = pulse_bus.get_object(object_path='/org/pulseaudio/core1')
 
-    if args.mute is not None:
+    # Mute before changing volume, so that we don't ever jump up to 100% before suddenly going silent
+    if args.mute is not None and args.mute:
         for stream in get_snapclient_streams(pulse_bus, pulse_core):
             stream.Set("org.PulseAudio.Core1.Stream", "Mute",
                        dbus.Boolean(args.mute, variant_level=1))
-# We don't do any volume control normally because it gets confused when synchronising the volume *to* snapcast
-# But it's useful to have this able to do volume control for my desktop and similar use-cases, so I support that anyway
+
+    # We don't do any volume control normally because it gets confused when synchronising the volume *to* snapcast
+    # But it's useful to have this able to do volume control for my desktop and similar use-cases, so I support that anyway
     if args.volume is not None and (args.sink or os.environ.get('PULSE_SINK')):
         sink = get_sink_by_name(pulse_bus, pulse_core, args.sink or os.environ.get('PULSE_SINK'))
         sink.Set("org.PulseAudio.Core1.Device", "Volume",
                  dbus.Array((convert_decimal_to_pa(args.volume),), variant_level=1))
+
+    # Unmute after changing volume, so that we don't ever unmute at 100% before suddenly lowering volume
+    if args.mute is not None and not args.mute:
+        for stream in get_snapclient_streams(pulse_bus, pulse_core):
+            stream.Set("org.PulseAudio.Core1.Stream", "Mute",
+                       dbus.Boolean(args.mute, variant_level=1))
