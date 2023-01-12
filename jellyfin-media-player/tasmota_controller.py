@@ -73,7 +73,6 @@ if args.device_type in http_devices:
         query_data = urllib.parse.urlencode({'cmnd': "Status"}).encode()
         while response := urllib.request.urlopen(device_url, data=query_data):
             status = json.loads(response.read().decode()).get('Status')
-            print(status)
             if status.get(key.title()) in goal:
                 # Found goal, return here
                 return status.get(key.title())
