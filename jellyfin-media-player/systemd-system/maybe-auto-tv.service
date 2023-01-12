@@ -11,7 +11,9 @@ Type=oneshot
 RemainAfterExit=true
 
 ExecStart=systemctl --user --global add-wants jellyfinmediaplayer.service tasmota-video.service
-ExecStart=systemctl --user --global add-wants flatpaked-app.service tasmota-video.service
+ExecStart=systemctl --user --global add-wants flatpak-app.service tasmota-video.service
+# FIXME: I want to eventually target Tasmota by default, this is designed with IR by default in mind.
+#        It's probably best to leave it this way though... not sure
 # Dependencies such as wants/requires are handled regardless of the ConditionKernelCommandLine
 # so disable IR-video here to make sure that the audible notification for IR-video never triggers
 ExecStart=systemctl --user --global disable IR-video.service
