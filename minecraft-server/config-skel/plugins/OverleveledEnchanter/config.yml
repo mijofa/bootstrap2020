@@ -1,0 +1,132 @@
+#OverleveledEnchanter config file
+
+#Change this to true if you want to enable merging enchantments to an uncapped level
+#If this is set to false Example: If a player combines 2 unbreaking III books they will receive an unbreaking III book
+#If this is set to true Example: If a player combines 2 unbreaking III books they will receive an unbreaking IV book
+Uncapped-Merge-Combination: true
+
+#This is the most amount of level a merge in the anvil can cost. If the resulting cost is higher than this one, It will be set to this one.
+#The maximum valid value for this is 2147483647, DO NOT put a larger number than the maximum valid one!
+#The minimum valid value for this is 1!
+Max-Level-Cost: 60
+
+#Here you can set the maximum level an enchant can reach.  If an enchanted item has a level above the maximumLevel value and gets into the anvil,
+#The resulting item will have it's enchantment's value set to the maximumLevel value.
+#Leave the value as -1 to have no limit.  Some enchantments like silk touch and infinity have already their values set to 1, since there is no
+#Reason for them to have a higher value than 1.
+Enchantments:
+
+  power:
+    maxLevel: 10
+
+  flame:
+    maxLevel: 2
+
+  punch:
+    maxLevel: 4
+
+  channeling:
+    maxLevel: 1
+
+  sharpness:
+    maxLevel: 15
+
+  bane_of_arthropods:
+    maxLevel: 10
+
+  smite:
+    maxLevel: 10
+
+  depth_strider:
+    maxLevel: 6
+
+  efficiency:
+    maxLevel: 100
+
+  unbreaking:
+    maxLevel: 100
+
+  fire_aspect:
+    maxLevel: 4
+
+  frost_walker:
+    maxLevel: 5
+
+  impaling:
+    maxLevel: 10
+
+  knockback:
+    maxLevel: 100
+
+  fortune:
+    maxLevel: 12
+
+  looting:
+    maxLevel: 12
+
+  loyalty:
+    maxLevel: 3
+
+  luck_of_the_sea:
+    maxLevel: 12
+
+  lure:
+    maxLevel: 12
+
+  mending:
+    maxLevel: 1
+
+  multishot:
+    maxLevel: 1
+
+  respiration:
+    maxLevel: 6
+
+  piercing:
+    maxLevel: 8
+
+  protection:
+    maxLevel: 10
+
+  blast_protection:
+    maxLevel: 10
+
+  feather_falling:
+    maxLevel: 10
+
+  fire_protection:
+    maxLevel: 10
+
+  projectile_protection:
+    maxLevel: 10
+
+  quick_charge:
+    maxLevel: 6
+
+  riptide:
+    maxLevel: 6
+
+  soul_speed:
+    maxLevel: 6
+
+  sweeping:
+    maxLevel: 6
+
+  thorns:
+    maxLevel: 6
+
+  aqua_affinity:
+    maxLevel: 1
+
+  infinity:
+    maxLevel: 1
+
+  binding_curse:
+    maxLevel: 1
+
+  silk_touch:
+    maxLevel: 1
+
+  vanishing_curse:
+    maxLevel: 1
+

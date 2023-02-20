@@ -1,0 +1,11 @@
+overleveledenchanter.overleveledanvil:
+  description: Allows a player to use overleveled enchantments in the anvil.
+  default: true
+overleveledenchanter.uncappedanvil:
+  description: Allows a player to merge enchantments exceeding the normal minecraft cap.
+  default: true
+
+# ref: https://github.com/webbukkit/dynmap/wiki/Using-markers#marker
+dynmap.marker.sign:
+  description: Allows creation of markers using signs
+  default: true

@@ -1,0 +1,39 @@
+use-permissions: false
+allow-automatic-sorting: false
+sorting-enabled-by-default: false
+inv-sorting-enabled-by-default: false
+show-message-when-using-chest: true
+show-message-when-using-chest-and-sorting-is-enabled: false
+show-message-again-after-logout: true
+auto-generate-category-files: true
+sort-time: close
+allow-sorting-hotkeys: true
+sorting-hotkeys:
+  middle-click: true
+  shift-click: false
+  double-click: false
+  shift-right-click: false
+hotkey-cooldown: 5
+allow-left-click-to-sort: false
+left-click-to-sort-enabled-by-default: false
+allow-additional-hotkeys: true
+additional-hotkeys:
+  left-click: false
+  right-click: false
+
+# Since I don't intend to use any of these plugins, let's disable the hooks.
+# Might make it more lag friendly or something
+hook-crackshot: false
+hook-inventorypages: false
+hook-minepacks: false
+hook-playervaults: false
+hook-endercontainers: true
+hook-cratereloaded: false
+hook-goldencrates: false
+hook-headdatabase: false
+hook-advancedchests: false
+hook-generic: true
+
+# Do not change the following lines!
+config-version: 202110011410
+plugin-version: 11.5.6
