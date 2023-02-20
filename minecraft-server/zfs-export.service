@@ -1,0 +1,18 @@
+[Unit]
+Description=Export ZFS pools
+Documentation=man:zpool(8)
+DefaultDependencies=no
+Requires=systemd-udev-settle.service
+Requires=zfs-load-module.service
+After=systemd-udev-settle.service
+Requires=zfs-load-module.service
+ConditionFileNotEmpty=!/etc/zfs/zpool.cache
+ConditionPathIsDirectory=/sys/module/zfs
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/sbin/zpool export -a
+
+[Install]
+WantedBy=shutdown.target

@@ -1,0 +1,6 @@
+# ref: https://unix.stackexchange.com/questions/598221/how-to-control-systemd-service-using-screen/612118#612118
+[Unit]
+PartOf=minecraft.service
+
+[Socket]
+ListenFIFO=%t/minecraft.stdin

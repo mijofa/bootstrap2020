@@ -1,0 +1,5 @@
+Can't include this file directly due to licesnsing issues with Minecraft code.
+I got it by extracting it from the root of /srv/mcdata/versions/1.19.3/paper-1.19.3.jar
+Then manually edited it to remove certain timestamps.
+
+The only purpose is to avoid doubling up the timestamps in the journal.

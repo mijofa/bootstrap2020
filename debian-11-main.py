@@ -84,7 +84,8 @@ parser.add_argument('--template', default='main',
                              'desktop-staff',
                              'desktop-staff-amc',
                              'desktop-staff-hcc',
-                             'jellyfin-media-player'
+                             'jellyfin-media-player',
+                             'minecraft-server'
                              ),
                     help=(
                         'main: small CLI image; '
@@ -316,9 +317,10 @@ with tempfile.TemporaryDirectory() as td:
          *(['--essential-hook=chroot $1 apt clean',
             '--customize-hook=chroot $1 apt clean']
            if args.optimize != 'simplicity' else []),
-         *(['--dpkgopt=path-exclude=/usr/share/doc/*',  # 9% to 12% smaller and
-            '--dpkgopt=path-exclude=/usr/share/man/*']  # 8% faster to 7% SLOWER.
+         *(['--dpkgopt=path-exclude=/usr/share/doc/*']  # 9% to 12% smaller and
            if args.optimize == 'size' else []),
+         *(['--dpkgopt=path-exclude=/usr/share/man/*']  # 8% faster to 7% SLOWER. Breaks JRE install
+           if args.optimize == 'size' and args.template != 'minecraft-server' else []),
          *([]
            if args.optimize == 'simplicity' else
            ['--include=pigz']       # save 8s
@@ -652,6 +654,20 @@ with tempfile.TemporaryDirectory() as td:
 
             f'--essential-hook=tar-in {create_tarball("jellyfin-media-player")} /']
            if args.template == 'jellyfin-media-player' else []),
+         *(['--include=openjdk-17-jre-headless rsync',
+
+            '--include=zfs-dkms zfsutils-linux zfs-zed',  # ZFS support
+            '--include=linux-headers-cloud-amd64'
+            if args.virtual_only else
+            '--include=linux-headers-amd64',
+            '--customize-hook=systemctl --root $1 add-wants zfs-import.target zfs-import-scan.service',  # scan & import zfs pools on boot
+
+            # FIXME: Use a systemd ephemeral user thing
+            # NOTE: I've set the user ID because I need it to match the ownership/permissions of the data partition
+            '--customize-hook=chroot $1 adduser minecraft --home /srv/mcdata --no-create-home --system --group --uid 420',
+            '--hook-dir=minecraft-server.hooks',
+            f'--essential-hook=tar-in {create_tarball("minecraft-server")} /']
+           if args.template == 'minecraft-server' else []),
          'bullseye',
          destdir / 'filesystem.squashfs',
          'debian-11.sources',
