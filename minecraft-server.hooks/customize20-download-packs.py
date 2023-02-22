@@ -56,6 +56,7 @@ datapacks_form_data = {'packs': json.dumps({
     ]}),
     'version': 1.19}
 
+print('Downloading data packs')
 with urllib.request.urlopen('https://vanillatweaks.net/assets/server/zipdatapacks.php',
                             data=urllib.parse.urlencode(datapacks_form_data).encode()) as json_req:
     json_response = json.load(json_req)
@@ -87,6 +88,7 @@ craftingtweaks_form_data = {'packs': json.dumps({
         "unpackable ice",
     ]}),
     'version': 1.19}
+print('Downloading crafting tweaks')
 with urllib.request.urlopen('https://vanillatweaks.net/assets/server/zipcraftingtweaks.php',
                             data=urllib.parse.urlencode(craftingtweaks_form_data).encode()) as json_req:
     json_response = json.load(json_req)
