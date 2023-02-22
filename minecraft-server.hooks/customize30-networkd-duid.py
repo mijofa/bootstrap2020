@@ -20,8 +20,11 @@ args = parser.parse_args()
 with open(args.chroot_path / pathlib.Path('etc/systemd/networkd.conf'), 'a') as f:
     f.write('\n')  # Just in case the last line doesn't have a '\n'
     f.write('\n'.join([
+        # '[DHCP]'  # FIXME: If it needs adding to this section anyway, are the others really necessary?
+        'DUIDType=link-layer',
         '[DHCPv4]',
         'DUIDType=link-layer',
         '[DHCPv6]',
         'DUIDType=link-layer',
     ]))
+    f.write('\n')
