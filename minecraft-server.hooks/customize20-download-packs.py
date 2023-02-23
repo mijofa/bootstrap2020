@@ -36,7 +36,10 @@ datapacks_form_data = {'packs': json.dumps({
         "custom nether portals",
         "cauldron concrete",
         "durability ping",
-        "graves",
+        # Disabled because they're a bit OP.
+        # I really only wanted them to keep stuff from despawning on death,
+        # but this would also make them invulnerable to lave and such too.
+        # "graves",
         "multiplayer sleep",
         "afk display",
         "armor statues",
