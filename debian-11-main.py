@@ -569,8 +569,7 @@ with tempfile.TemporaryDirectory() as td:
            if args.template.startswith('desktop-inmate') else []),
          *(['--verbose', '--logfile', destdir / 'mmdebstrap.log']
            if args.reproducible else []),
-         *(['--include=phoc',  # Let's try Wayland instead of X11  NOTE: jellyfin-media-player has issues with sway, mako-notifier can't work with weston
-            # FIXME: Do some phoc config to hide cursor and ensure XWayland is disabled: https://github.com/agx/phoc/blob/master/src/phoc.ini.example
+         *(['--include=phoc xwayland',  # Let's try Wayland instead of X11  NOTE: jellyfin-media-player has issues with sway, mako-notifier can't work with weston
 
             # copied from wants_GUI section above because while this does want a GUI, it's not an X11 GUI so we can't use that entire section
             '--include=vdpau-driver-all'  # VA/AMD, free
