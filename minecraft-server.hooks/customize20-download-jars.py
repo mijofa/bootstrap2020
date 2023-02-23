@@ -74,7 +74,8 @@ spigotmc_downloader_api_endpoint = 'https://api.spiget.org/v2/resources/{resourc
 for resource in ['chestsort-api.59773',  # https://www.spigotmc.org/resources/chestsort-api.59773
                  'overleveled-enchanter.93379',  # https://www.spigotmc.org/resources/overleveled-enchanter.93379
                  'view-distance-tweaks-1-14-1-17.75164',  # https://www.spigotmc.org/resources/view-distance-tweaks-1-14-1-17.75164
-                 # FIXME: Why is this one 404ing? This one's kinda important, can we just do it manually?
+                 # Why is this one 404ing? This one's kinda important, but doing it manually worked. :shrug:
+                 # It hasn't been updated in ~3yrs, so I'd say doing this one manually is fine, it's not likely to update any time soon.
                  # 'customcommandprefix.87224',  # https://www.spigotmc.org/resources/customcommandprefix.87224
                  'petting.74710',  # https://www.spigotmc.org/resources/petting.74710
                  'bsb-better-shulker-boxes-1-13-1-19-2.58837',  # https://www.spigotmc.org/resources/bsb-better-shulker-boxes-1-13-1-19-2.58837/
