@@ -28,5 +28,10 @@ ExecStart=flatpak-apps.py
 #        Setting "Type=forking" doesn't help because that expects the parent process to go away, which it never does.
 # FIXME: Only works with 1 flatpak app running at a time
 ExecStop=-bash -c 'flatpak kill -v  $(flatpak ps | cut -f3)'
+# Hide the mouse cursor in the bottom-right
+# NOTE: Hardcodes a resolution max of 999999x999999,
+#       but if this code is still around when screens that large are mainstream I'd be impressed
+# FIXME: Copy-pasted from Jellyfin's .service file
+ExecStopPost=-/usr/bin/ydotool mousemove 999999 999999
 
 Restart=no
