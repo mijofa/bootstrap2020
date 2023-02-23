@@ -13,6 +13,7 @@ Type=forking
 # Qt defaults to X11 unless told otherwise, and does not fallback on Wayland when that fails
 # FIXME: This should be set for the entire session, not just this service
 Environment=XDG_SESSION_TYPE=wayland
+Environment=DISPLAY=:0
 # Let pulseaudio "cork" other streams properly
 # FIXME: Not necessarily a game, but that's probably the best guess anyway, so stick with it.
 Environment=PULSE_PROP='media.role=game'
