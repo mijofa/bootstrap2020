@@ -653,6 +653,8 @@ with tempfile.TemporaryDirectory() as td:
             '--include=flatpak',  # The offical Steam Link app is a flatpak, so just use that because CBFed doing it myself
             '--include=steam-devices',  # Some udev rules to theoretically help with Steam Controller support
 
+            '--include=rsync',  # I like to manually update the SOE directly sometimes
+
             # Create the actual user that the GUI runs as
             '--customize-hook=chroot $1 adduser jellyfinuser --gecos "Jellyfin Client User" --disabled-password --quiet',
             '--customize-hook=chroot $1 adduser jellyfinuser input --quiet',  # For access to evdev devices for keybinds.py
