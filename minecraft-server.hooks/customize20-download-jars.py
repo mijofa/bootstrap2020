@@ -42,10 +42,10 @@ urllib.request.urlretrieve(urllib.parse.urljoin(papermc_url,
 # Geyser & Floodgate (Bedrock compatibility plugin) #
 print('Downloading Geyser & Floodgate')
 urllib.request.urlretrieve('https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/'
-                           'bootstrap/spigot/target/Geyser-Spigot.jar',
+                           'bootstrap/spigot/build/libs/Geyser-Spigot.jar',
                            download_path / 'Geyser-Spigot.jar')
-urllib.request.urlretrieve('https://ci.opencollab.dev//job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/'
-                           'spigot/target/floodgate-spigot.jar',
+urllib.request.urlretrieve('https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/'
+                           'spigot/build/libs/floodgate-spigot.jar',
                            download_path / 'floodgate-spigot.jar')
 
 # Discord integration #
