@@ -1,0 +1,6 @@
+Armoured Elytra resource pack taken from: https://www.planetminecraft.com/texture-pack/armoured-elytra-resource-pack-for-vanillatweaks-datapack/
+Then converted for Bedrock at: https://github.com/Kas-tle/java2bedrock.sh/issues/4552
+
+Sadly this only affects the thumbnail icon when holding the item, not the
+actual worn item.
+I'm not sure how to resolve this.

@@ -1,0 +1,43 @@
+{
+  "format_version": "1",
+  "items": {
+    "minecraft:elytra": [
+      {
+        "name": "gmdl_c420728",
+        "allow_offhand": true,
+        "icon": "gmdl_c420728",
+        "custom_model_data": 13522551
+      },
+      {
+        "name": "gmdl_21dd10c",
+        "allow_offhand": true,
+        "icon": "gmdl_21dd10c",
+        "custom_model_data": 13522552
+      },
+      {
+        "name": "gmdl_7f506bf",
+        "allow_offhand": true,
+        "icon": "gmdl_7f506bf",
+        "custom_model_data": 13522553
+      },
+      {
+        "name": "gmdl_ef85e96",
+        "allow_offhand": true,
+        "icon": "gmdl_ef85e96",
+        "custom_model_data": 13522554
+      },
+      {
+        "name": "gmdl_3281310",
+        "allow_offhand": true,
+        "icon": "gmdl_3281310",
+        "custom_model_data": 13522555
+      },
+      {
+        "name": "gmdl_6b2c93a",
+        "allow_offhand": true,
+        "icon": "gmdl_6b2c93a",
+        "custom_model_data": 13522556
+      }
+    ]
+  }
+}
