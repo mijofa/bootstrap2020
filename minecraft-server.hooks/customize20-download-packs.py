@@ -25,6 +25,7 @@ lib_path.mkdir(exist_ok=True)  # FIXME: parents=True? mode=???
 download_path = lib_path / pathlib.Path('datapacks')
 download_path.mkdir(exist_ok=True)  # FIXME: parents=True? mode=???
 
+print('Downloading Vanilla Tweaks...')
 # ref: https://vanillatweaks.net/picker/datapacks/
 datapacks_form_data = {'packs': json.dumps({
     "survival": [
@@ -59,7 +60,7 @@ datapacks_form_data = {'packs': json.dumps({
     ]}),
     'version': 1.19}
 
-print('Downloading data packs')
+print('* Data packs')
 with urllib.request.urlopen('https://vanillatweaks.net/assets/server/zipdatapacks.php',
                             data=urllib.parse.urlencode(datapacks_form_data).encode()) as json_req:
     json_response = json.load(json_req)
@@ -91,10 +92,22 @@ craftingtweaks_form_data = {'packs': json.dumps({
         "unpackable ice",
     ]}),
     'version': 1.19}
-print('Downloading crafting tweaks')
+print('* Crafting tweaks')
 with urllib.request.urlopen('https://vanillatweaks.net/assets/server/zipcraftingtweaks.php',
                             data=urllib.parse.urlencode(craftingtweaks_form_data).encode()) as json_req:
     json_response = json.load(json_req)
     # This one doesn't get unzipped... consistency's great ain't it?
     urllib.request.urlretrieve(urllib.parse.urljoin('https://vanillatweaks.net/', json_response['link']),
                                download_path / pathlib.Path('VanillaTweaks_CraftingTweaks.zip'))
+
+print('Downloading Voodoo Packs...')
+# http://mc.voodoobeard.com/
+print('* Mendfinity')  # FIXME: I couldn't make this one work when testing.
+urllib.request.urlretrieve('http://mc.voodoobeard.com/downloads/Datapacks/1.19/Mendfinity_1.4.1.zip',
+                           download_path / pathlib.Path('Mendfinity_1.4.1.zip'))
+print('* Ender Beacons')
+urllib.request.urlretrieve('http://mc.voodoobeard.com/downloads/Datapacks/1.19/Ender_Beacons_2.4.1.zip',
+                           download_path / pathlib.Path('Ender_Beacons_2.4.1.zip'))
+print('* Mobcutter')
+urllib.request.urlretrieve('http://mc.voodoobeard.com/downloads/Datapacks/1.19/Mobcutter_1.4.1.zip',
+                           download_path / pathlib.Path('Mobcutter_1.4.1.zip'))
