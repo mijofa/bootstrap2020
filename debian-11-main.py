@@ -668,6 +668,8 @@ with tempfile.TemporaryDirectory() as td:
             '--customize-hook=systemctl mask --quiet --system --root $1 plymouth-quit-wait.service',  # This is a service that waits for plymouth to stop before allowing graphical.target to start, that gets stupidly in the way for us.
             '--customize-hook=systemctl enable --quiet --system --root $1 plymouth-quit.service',  # Instead of disabling plymouth, just have the stop unit start *after* phoc
 
+            f'--customize-hook=sed -i "s|{pathlib.Path.cwd()}/jellyfin-media-player|/etc/apt/trusted.gpg.d|" "$1/etc/apt/sources.list.d/0001main.list"',  # Fix apt sources.list for the correct public key location
+
             f'--essential-hook=tar-in {create_tarball("jellyfin-media-player")} /']
            if args.template == 'jellyfin-media-player' else []),
          *(['--include=openjdk-17-jre-headless rsync',
