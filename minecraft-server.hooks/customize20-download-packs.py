@@ -112,7 +112,8 @@ print('* Mobcutter')
 urllib.request.urlretrieve('http://mc.voodoobeard.com/downloads/Datapacks/1.19/Mobcutter_1.4.1.zip',
                            download_path / pathlib.Path('Mobcutter_1.4.1.zip'))
 
-# https://www.curseforge.com/minecraft/customization/custom-roleplay-data-datapack/download/3342628
+print('Downloading Custom Roleplay Data from CurseForge')
+# https://www.curseforge.com/minecraft/customization/custom-roleplay-data-datapack/
 # FIXME: This won't handle updates at all
 urllib.request.urlretrieve('https://mediafilez.forgecdn.net/files/3342/628/custom_roleplay_data_v1.0.zip',
                            download_path / pathlib.Path('custom_roleplay_data_v1.0.zip'))
