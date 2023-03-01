@@ -547,6 +547,12 @@
     ],
     "minecraft:totem_of_undying": [
       {
+        "name": "gmdl_448462a",
+        "allow_offhand": true,
+        "icon": "gmdl_448462a",
+        "custom_model_data": 69420
+      },
+      {
         "name": "gmdl_d9aa124",
         "allow_offhand": true,
         "icon": "gmdl_d9aa124",
