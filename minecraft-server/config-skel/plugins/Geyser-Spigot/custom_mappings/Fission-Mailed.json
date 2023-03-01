@@ -1,0 +1,549 @@
+{
+  "format_version": "1",
+  "items": {
+    "minecraft:bow": [
+      {
+        "name": "gmdl_d686b7b",
+        "allow_offhand": true,
+        "icon": "gmdl_d686b7b",
+        "custom_model_data": 1
+      },
+      {
+        "name": "gmdl_d686b7b",
+        "allow_offhand": true,
+        "icon": "gmdl_d686b7b",
+        "custom_model_data": 1
+      },
+      {
+        "name": "gmdl_d686b7b",
+        "allow_offhand": true,
+        "icon": "gmdl_d686b7b",
+        "custom_model_data": 1
+      },
+      {
+        "name": "gmdl_d686b7b",
+        "allow_offhand": true,
+        "icon": "gmdl_d686b7b",
+        "custom_model_data": 1
+      },
+      {
+        "name": "gmdl_f31ab92",
+        "allow_offhand": true,
+        "icon": "gmdl_f31ab92",
+        "custom_model_data": 2
+      },
+      {
+        "name": "gmdl_f31ab92",
+        "allow_offhand": true,
+        "icon": "gmdl_f31ab92",
+        "custom_model_data": 2
+      },
+      {
+        "name": "gmdl_f31ab92",
+        "allow_offhand": true,
+        "icon": "gmdl_f31ab92",
+        "custom_model_data": 2
+      },
+      {
+        "name": "gmdl_f31ab92",
+        "allow_offhand": true,
+        "icon": "gmdl_f31ab92",
+        "custom_model_data": 2
+      },
+      {
+        "name": "gmdl_56b87dc",
+        "allow_offhand": true,
+        "icon": "gmdl_56b87dc",
+        "custom_model_data": 3
+      },
+      {
+        "name": "gmdl_56b87dc",
+        "allow_offhand": true,
+        "icon": "gmdl_56b87dc",
+        "custom_model_data": 3
+      },
+      {
+        "name": "gmdl_56b87dc",
+        "allow_offhand": true,
+        "icon": "gmdl_56b87dc",
+        "custom_model_data": 3
+      },
+      {
+        "name": "gmdl_56b87dc",
+        "allow_offhand": true,
+        "icon": "gmdl_56b87dc",
+        "custom_model_data": 3
+      },
+      {
+        "name": "gmdl_6b11176",
+        "allow_offhand": true,
+        "icon": "gmdl_6b11176",
+        "custom_model_data": 4
+      },
+      {
+        "name": "gmdl_6b11176",
+        "allow_offhand": true,
+        "icon": "gmdl_6b11176",
+        "custom_model_data": 4
+      },
+      {
+        "name": "gmdl_6b11176",
+        "allow_offhand": true,
+        "icon": "gmdl_6b11176",
+        "custom_model_data": 4
+      },
+      {
+        "name": "gmdl_6b11176",
+        "allow_offhand": true,
+        "icon": "gmdl_6b11176",
+        "custom_model_data": 4
+      },
+      {
+        "name": "gmdl_131e8e3",
+        "allow_offhand": true,
+        "icon": "gmdl_131e8e3",
+        "custom_model_data": 37
+      },
+      {
+        "name": "gmdl_131e8e3",
+        "allow_offhand": true,
+        "icon": "gmdl_131e8e3",
+        "custom_model_data": 37
+      },
+      {
+        "name": "gmdl_131e8e3",
+        "allow_offhand": true,
+        "icon": "gmdl_131e8e3",
+        "custom_model_data": 37
+      },
+      {
+        "name": "gmdl_131e8e3",
+        "allow_offhand": true,
+        "icon": "gmdl_131e8e3",
+        "custom_model_data": 37
+      },
+      {
+        "name": "gmdl_de56a65",
+        "allow_offhand": true,
+        "icon": "gmdl_de56a65",
+        "custom_model_data": 38
+      },
+      {
+        "name": "gmdl_de56a65",
+        "allow_offhand": true,
+        "icon": "gmdl_de56a65",
+        "custom_model_data": 38
+      },
+      {
+        "name": "gmdl_de56a65",
+        "allow_offhand": true,
+        "icon": "gmdl_de56a65",
+        "custom_model_data": 38
+      },
+      {
+        "name": "gmdl_de56a65",
+        "allow_offhand": true,
+        "icon": "gmdl_de56a65",
+        "custom_model_data": 38
+      },
+      {
+        "name": "gmdl_8f7fdc8",
+        "allow_offhand": true,
+        "icon": "gmdl_8f7fdc8",
+        "custom_model_data": 39
+      },
+      {
+        "name": "gmdl_8f7fdc8",
+        "allow_offhand": true,
+        "icon": "gmdl_8f7fdc8",
+        "custom_model_data": 39
+      },
+      {
+        "name": "gmdl_8f7fdc8",
+        "allow_offhand": true,
+        "icon": "gmdl_8f7fdc8",
+        "custom_model_data": 39
+      },
+      {
+        "name": "gmdl_8f7fdc8",
+        "allow_offhand": true,
+        "icon": "gmdl_8f7fdc8",
+        "custom_model_data": 39
+      },
+      {
+        "name": "gmdl_08798a8",
+        "allow_offhand": true,
+        "icon": "gmdl_08798a8",
+        "custom_model_data": 40
+      },
+      {
+        "name": "gmdl_08798a8",
+        "allow_offhand": true,
+        "icon": "gmdl_08798a8",
+        "custom_model_data": 40
+      },
+      {
+        "name": "gmdl_08798a8",
+        "allow_offhand": true,
+        "icon": "gmdl_08798a8",
+        "custom_model_data": 40
+      },
+      {
+        "name": "gmdl_08798a8",
+        "allow_offhand": true,
+        "icon": "gmdl_08798a8",
+        "custom_model_data": 40
+      },
+      {
+        "name": "gmdl_cac791f",
+        "allow_offhand": true,
+        "icon": "gmdl_cac791f",
+        "custom_model_data": 41
+      },
+      {
+        "name": "gmdl_cac791f",
+        "allow_offhand": true,
+        "icon": "gmdl_cac791f",
+        "custom_model_data": 41
+      },
+      {
+        "name": "gmdl_cac791f",
+        "allow_offhand": true,
+        "icon": "gmdl_cac791f",
+        "custom_model_data": 41
+      },
+      {
+        "name": "gmdl_cac791f",
+        "allow_offhand": true,
+        "icon": "gmdl_cac791f",
+        "custom_model_data": 41
+      },
+      {
+        "name": "gmdl_cc55bdf",
+        "allow_offhand": true,
+        "icon": "gmdl_cc55bdf",
+        "custom_model_data": 42
+      },
+      {
+        "name": "gmdl_cc55bdf",
+        "allow_offhand": true,
+        "icon": "gmdl_cc55bdf",
+        "custom_model_data": 42
+      },
+      {
+        "name": "gmdl_cc55bdf",
+        "allow_offhand": true,
+        "icon": "gmdl_cc55bdf",
+        "custom_model_data": 42
+      },
+      {
+        "name": "gmdl_cc55bdf",
+        "allow_offhand": true,
+        "icon": "gmdl_cc55bdf",
+        "custom_model_data": 42
+      }
+    ],
+    "minecraft:copper_ingot": [
+      {
+        "name": "gmdl_7757e5e",
+        "allow_offhand": true,
+        "icon": "gmdl_7757e5e",
+        "custom_model_data": 43
+      },
+      {
+        "name": "gmdl_4ed94ab",
+        "allow_offhand": true,
+        "icon": "gmdl_4ed94ab",
+        "custom_model_data": 44
+      },
+      {
+        "name": "gmdl_886d7c9",
+        "allow_offhand": true,
+        "icon": "gmdl_886d7c9",
+        "custom_model_data": 45
+      },
+      {
+        "name": "gmdl_64ccad2",
+        "allow_offhand": true,
+        "icon": "gmdl_64ccad2",
+        "custom_model_data": 46
+      },
+      {
+        "name": "gmdl_796c39b",
+        "allow_offhand": true,
+        "icon": "gmdl_796c39b",
+        "custom_model_data": 47
+      },
+      {
+        "name": "gmdl_f5b9073",
+        "allow_offhand": true,
+        "icon": "gmdl_f5b9073",
+        "custom_model_data": 48
+      }
+    ],
+    "minecraft:diamond_axe": [
+      {
+        "name": "gmdl_7d1cbf4",
+        "allow_offhand": true,
+        "icon": "gmdl_7d1cbf4",
+        "custom_model_data": 7
+      },
+      {
+        "name": "gmdl_2817f95",
+        "allow_offhand": true,
+        "icon": "gmdl_2817f95",
+        "custom_model_data": 8
+      },
+      {
+        "name": "gmdl_d41b051",
+        "allow_offhand": true,
+        "icon": "gmdl_d41b051",
+        "custom_model_data": 9
+      },
+      {
+        "name": "gmdl_4cbb965",
+        "allow_offhand": true,
+        "icon": "gmdl_4cbb965",
+        "custom_model_data": 10
+      },
+      {
+        "name": "gmdl_e5756e3",
+        "allow_offhand": true,
+        "icon": "gmdl_e5756e3",
+        "custom_model_data": 11
+      },
+      {
+        "name": "gmdl_307597b",
+        "allow_offhand": true,
+        "icon": "gmdl_307597b",
+        "custom_model_data": 12
+      }
+    ],
+    "minecraft:diamond_hoe": [
+      {
+        "name": "gmdl_c47cd13",
+        "allow_offhand": true,
+        "icon": "gmdl_c47cd13",
+        "custom_model_data": 13
+      },
+      {
+        "name": "gmdl_3d75526",
+        "allow_offhand": true,
+        "icon": "gmdl_3d75526",
+        "custom_model_data": 14
+      },
+      {
+        "name": "gmdl_9df44ef",
+        "allow_offhand": true,
+        "icon": "gmdl_9df44ef",
+        "custom_model_data": 15
+      },
+      {
+        "name": "gmdl_00af318",
+        "allow_offhand": true,
+        "icon": "gmdl_00af318",
+        "custom_model_data": 16
+      },
+      {
+        "name": "gmdl_6375b66",
+        "allow_offhand": true,
+        "icon": "gmdl_6375b66",
+        "custom_model_data": 17
+      },
+      {
+        "name": "gmdl_372a93e",
+        "allow_offhand": true,
+        "icon": "gmdl_372a93e",
+        "custom_model_data": 18
+      }
+    ],
+    "minecraft:diamond_pickaxe": [
+      {
+        "name": "gmdl_65286c4",
+        "allow_offhand": true,
+        "icon": "gmdl_65286c4",
+        "custom_model_data": 19
+      },
+      {
+        "name": "gmdl_0fa4bd3",
+        "allow_offhand": true,
+        "icon": "gmdl_0fa4bd3",
+        "custom_model_data": 20
+      },
+      {
+        "name": "gmdl_c04039b",
+        "allow_offhand": true,
+        "icon": "gmdl_c04039b",
+        "custom_model_data": 21
+      },
+      {
+        "name": "gmdl_ed8b8a0",
+        "allow_offhand": true,
+        "icon": "gmdl_ed8b8a0",
+        "custom_model_data": 22
+      },
+      {
+        "name": "gmdl_71aafa1",
+        "allow_offhand": true,
+        "icon": "gmdl_71aafa1",
+        "custom_model_data": 23
+      },
+      {
+        "name": "gmdl_7d3522e",
+        "allow_offhand": true,
+        "icon": "gmdl_7d3522e",
+        "custom_model_data": 24
+      }
+    ],
+    "minecraft:diamond_shovel": [
+      {
+        "name": "gmdl_3c3fa6a",
+        "allow_offhand": true,
+        "icon": "gmdl_3c3fa6a",
+        "custom_model_data": 1
+      },
+      {
+        "name": "gmdl_d43044c",
+        "allow_offhand": true,
+        "icon": "gmdl_d43044c",
+        "custom_model_data": 2
+      },
+      {
+        "name": "gmdl_f290c4f",
+        "allow_offhand": true,
+        "icon": "gmdl_f290c4f",
+        "custom_model_data": 3
+      },
+      {
+        "name": "gmdl_8fdd68f",
+        "allow_offhand": true,
+        "icon": "gmdl_8fdd68f",
+        "custom_model_data": 4
+      },
+      {
+        "name": "gmdl_bb5a647",
+        "allow_offhand": true,
+        "icon": "gmdl_bb5a647",
+        "custom_model_data": 5
+      },
+      {
+        "name": "gmdl_3497a75",
+        "allow_offhand": true,
+        "icon": "gmdl_3497a75",
+        "custom_model_data": 6
+      },
+      {
+        "name": "gmdl_246fe7f",
+        "allow_offhand": true,
+        "icon": "gmdl_246fe7f",
+        "custom_model_data": 31
+      },
+      {
+        "name": "gmdl_bfccf80",
+        "allow_offhand": true,
+        "icon": "gmdl_bfccf80",
+        "custom_model_data": 32
+      },
+      {
+        "name": "gmdl_c99ea37",
+        "allow_offhand": true,
+        "icon": "gmdl_c99ea37",
+        "custom_model_data": 33
+      },
+      {
+        "name": "gmdl_8b9e58b",
+        "allow_offhand": true,
+        "icon": "gmdl_8b9e58b",
+        "custom_model_data": 34
+      },
+      {
+        "name": "gmdl_bae6ce7",
+        "allow_offhand": true,
+        "icon": "gmdl_bae6ce7",
+        "custom_model_data": 35
+      },
+      {
+        "name": "gmdl_bd803d4",
+        "allow_offhand": true,
+        "icon": "gmdl_bd803d4",
+        "custom_model_data": 36
+      }
+    ],
+    "minecraft:diamond_sword": [
+      {
+        "name": "gmdl_1177450",
+        "allow_offhand": true,
+        "icon": "gmdl_1177450",
+        "custom_model_data": 25
+      },
+      {
+        "name": "gmdl_2beff0b",
+        "allow_offhand": true,
+        "icon": "gmdl_2beff0b",
+        "custom_model_data": 26
+      },
+      {
+        "name": "gmdl_d765a7d",
+        "allow_offhand": true,
+        "icon": "gmdl_d765a7d",
+        "custom_model_data": 27
+      },
+      {
+        "name": "gmdl_04d419f",
+        "allow_offhand": true,
+        "icon": "gmdl_04d419f",
+        "custom_model_data": 28
+      },
+      {
+        "name": "gmdl_ca5d6b7",
+        "allow_offhand": true,
+        "icon": "gmdl_ca5d6b7",
+        "custom_model_data": 29
+      },
+      {
+        "name": "gmdl_bf3a93f",
+        "allow_offhand": true,
+        "icon": "gmdl_bf3a93f",
+        "custom_model_data": 30
+      }
+    ],
+    "minecraft:elytra": [
+      {
+        "name": "gmdl_c420728",
+        "allow_offhand": true,
+        "icon": "gmdl_c420728",
+        "custom_model_data": 13522551
+      },
+      {
+        "name": "gmdl_21dd10c",
+        "allow_offhand": true,
+        "icon": "gmdl_21dd10c",
+        "custom_model_data": 13522552
+      },
+      {
+        "name": "gmdl_7f506bf",
+        "allow_offhand": true,
+        "icon": "gmdl_7f506bf",
+        "custom_model_data": 13522553
+      },
+      {
+        "name": "gmdl_ef85e96",
+        "allow_offhand": true,
+        "icon": "gmdl_ef85e96",
+        "custom_model_data": 13522554
+      },
+      {
+        "name": "gmdl_3281310",
+        "allow_offhand": true,
+        "icon": "gmdl_3281310",
+        "custom_model_data": 13522555
+      },
+      {
+        "name": "gmdl_6b2c93a",
+        "allow_offhand": true,
+        "icon": "gmdl_6b2c93a",
+        "custom_model_data": 13522556
+      }
+    ]
+  }
+}
