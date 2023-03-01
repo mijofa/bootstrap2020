@@ -68,7 +68,7 @@ print('Downloading Chunky')
 urllib.request.urlretrieve('https://dev.bukkit.org/projects/chunky-pregenerator/files/latest',
                            download_path / 'chunky-pregenerator.jar')
 
-# From spigotmv.org
+# From spigotmc.org
 spigotmc_downloader_api_endpoint = 'https://api.spiget.org/v2/resources/{resource_id}/download'
 # NOTE: There's very little need for the names here, but they serve as a bit of documentation too
 for resource in ['chestsort-api.59773',  # https://www.spigotmc.org/resources/chestsort-api.59773
