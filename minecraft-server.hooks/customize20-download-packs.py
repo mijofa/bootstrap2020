@@ -55,6 +55,7 @@ datapacks_form_data = {'packs': json.dumps({
     ],
     "utilities": ["spawning spheres"],
     "experimental": [
+        "chunk loaders",
         "elevators",
         "xp management",
     ]}),
