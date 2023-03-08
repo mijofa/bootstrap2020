@@ -545,6 +545,52 @@
         "custom_model_data": 13522556
       }
     ],
+    "minecraft:netherite_axe": [
+      {
+        "name": "gmdl_66896b0",
+        "allow_offhand": true,
+        "icon": "gmdl_66896b0",
+        "custom_model_data": 95500
+      }
+    ],
+    "minecraft:netherite_hoe": [
+      {
+        "name": "gmdl_47472e4",
+        "allow_offhand": true,
+        "icon": "gmdl_47472e4",
+        "custom_model_data": 65400
+      }
+    ],
+    "minecraft:netherite_pickaxe": [
+      {
+        "name": "gmdl_bd6e865",
+        "allow_offhand": true,
+        "icon": "gmdl_bd6e865",
+        "custom_model_data": 88800
+      }
+    ],
+    "minecraft:netherite_shovel": [
+      {
+        "name": "gmdl_fb18d52",
+        "allow_offhand": true,
+        "icon": "gmdl_fb18d52",
+        "custom_model_data": 59300
+      }
+    ],
+    "minecraft:netherite_sword": [
+      {
+        "name": "gmdl_714d4f5",
+        "allow_offhand": true,
+        "icon": "gmdl_714d4f5",
+        "custom_model_data": 21400
+      },
+      {
+        "name": "gmdl_4080f49",
+        "allow_offhand": true,
+        "icon": "gmdl_4080f49",
+        "custom_model_data": 21401
+      }
+    ],
     "minecraft:totem_of_undying": [
       {
         "name": "gmdl_448462a",
@@ -557,6 +603,84 @@
         "allow_offhand": true,
         "icon": "gmdl_d9aa124",
         "custom_model_data": 69421
+      },
+      {
+        "name": "gmdl_64824c7",
+        "allow_offhand": true,
+        "icon": "gmdl_64824c7",
+        "custom_model_data": 94560
+      },
+      {
+        "name": "gmdl_bb7b1b7",
+        "allow_offhand": true,
+        "icon": "gmdl_bb7b1b7",
+        "custom_model_data": 94561
+      },
+      {
+        "name": "gmdl_964a980",
+        "allow_offhand": true,
+        "icon": "gmdl_964a980",
+        "custom_model_data": 94562
+      },
+      {
+        "name": "gmdl_5392dea",
+        "allow_offhand": true,
+        "icon": "gmdl_5392dea",
+        "custom_model_data": 94563
+      },
+      {
+        "name": "gmdl_80da096",
+        "allow_offhand": true,
+        "icon": "gmdl_80da096",
+        "custom_model_data": 94564
+      },
+      {
+        "name": "gmdl_38351c4",
+        "allow_offhand": true,
+        "icon": "gmdl_38351c4",
+        "custom_model_data": 94565
+      },
+      {
+        "name": "gmdl_b3a7d57",
+        "allow_offhand": true,
+        "icon": "gmdl_b3a7d57",
+        "custom_model_data": 94566
+      },
+      {
+        "name": "gmdl_189ff31",
+        "allow_offhand": true,
+        "icon": "gmdl_189ff31",
+        "custom_model_data": 94567
+      },
+      {
+        "name": "gmdl_2520b52",
+        "allow_offhand": true,
+        "icon": "gmdl_2520b52",
+        "custom_model_data": 94568
+      },
+      {
+        "name": "gmdl_28840b3",
+        "allow_offhand": true,
+        "icon": "gmdl_28840b3",
+        "custom_model_data": 94569
+      },
+      {
+        "name": "gmdl_fe55905",
+        "allow_offhand": true,
+        "icon": "gmdl_fe55905",
+        "custom_model_data": 945610
+      },
+      {
+        "name": "gmdl_4ac3b87",
+        "allow_offhand": true,
+        "icon": "gmdl_4ac3b87",
+        "custom_model_data": 945611
+      },
+      {
+        "name": "gmdl_93ad00f",
+        "allow_offhand": true,
+        "icon": "gmdl_93ad00f",
+        "custom_model_data": 945612
       }
     ]
   }
