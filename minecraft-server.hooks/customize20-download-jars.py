@@ -47,6 +47,15 @@ urllib.request.urlretrieve('https://ci.opencollab.dev/job/GeyserMC/job/Geyser/jo
 urllib.request.urlretrieve('https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/'
                            'spigot/build/libs/floodgate-spigot.jar',
                            download_path / 'floodgate-spigot.jar')
+# NOTE: Requires `BedrockSkinUtility <https://github.com/Camotoy/BedrockSkinUtility>`_ client-side mod to be useful
+#       (does not break vanilla compatibility)
+#       Does not work with character creator skins, only "classic" skins.
+#       Is only useful for skins with extra 3D aspects, because Floodgate handles the 2D ones fine on its own.
+print('Downloading GeyserSkinManager')
+discordsrv_release = json.load(urllib.request.urlopen('https://api.github.com/repos/Camotoy/GeyserSkinManager/releases/latest'))
+discordsrv_jar_assets = [a for a in discordsrv_release['assets'] if a['name'].endswith('-Spigot.jar')]
+assert len(discordsrv_jar_assets) == 1
+urllib.request.urlretrieve(discordsrv_jar_assets[0]['browser_download_url'], download_path / 'GeyserSkinManager-Spigot.jar')
 
 # Discord integration #
 print('Downloading DiscordSRV')
