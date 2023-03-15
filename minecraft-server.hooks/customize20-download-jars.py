@@ -60,6 +60,23 @@ geyserskinmanager_jar_assets = [a for a in geyserskinmanager_release['assets'] i
 assert len(geyserskinmanager_jar_assets) == 1
 urllib.request.urlretrieve(geyserskinmanager_jar_assets[0]['browser_download_url'], plugins_path / 'GeyserSkinManager-Spigot.jar')
 
+# NOTE: Requires Emotecraft client-side mod to be useful
+#       fabric: https://www.curseforge.com/minecraft/mc-mods/emotecraft
+#       forge:  https://www.curseforge.com/minecraft/mc-mods/emotecraft-forge/
+#       (does not break vanilla compatibility)
+print('Downloading Emotecraft')
+urllib.request.urlretrieve('https://dev.bukkit.org/projects/emotecraft-bukkit/files/latest',
+                           plugins_path / 'emotecraft-bukkit.jar')
+# This one tries to make Bedrock emotes work with Emotecraft, but hasn't had much development yet.
+print('Downloading Geyser-emote-extension')
+geyseremote_release = json.load(urllib.request.urlopen(
+                                'https://api.github.com/repos/KosmX/geyser-emote-extension/releases/latest'))
+geyseremote_jar_assets = [a for a in geyseremote_release['assets']
+                          if a['name'].endswith('.jar') and not a['name'].endswith('-slim.jar')]
+assert len(geyseremote_jar_assets) == 1
+urllib.request.urlretrieve(geyseremote_jar_assets[0]['browser_download_url'],
+                           geyser_extensions_path / 'geyser-emote-extension.jar')
+
 # Discord integration #
 print('Downloading DiscordSRV')
 discordsrv_release = json.load(urllib.request.urlopen('https://api.github.com/repos/DiscordSRV/DiscordSRV/releases/latest'))
