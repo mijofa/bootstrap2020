@@ -44,6 +44,7 @@ ProtectControlGroups=true
 # Make the directories required for the symlinks
 ExecStartPre=mkdir -p /srv/mcdata/plugins
 ExecStartPre=mkdir -p /srv/mcdata/world/datapacks
+ExecStartPre=mkdir -p /srv/mcdata/plugins/Geyser-Spigot/extensions
 # This will follow symlinks, searching for symlinks. Which will actually find broken symlinks
 ExecStartPre=find -L /srv/mcdata/world/datapacks /srv/mcdata/plugins/ -xdev -type l -ls -delete
 # Symlink all the included files from /usr/lib/minecraft
