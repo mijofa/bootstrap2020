@@ -41,11 +41,13 @@ urllib.request.urlretrieve(urllib.parse.urljoin(papermc_url,
                                                 f"paper-{args.minecraft_version}-{papermc_releases['builds'][-1]}.jar"),
                            lib_path / 'paperclip.jar')
 
+print('Downloading Bedrock compatibility plugins...')
 # Geyser & Floodgate (Bedrock compatibility plugin) #
-print('Downloading Geyser & Floodgate')
+print('* Geyser')
 urllib.request.urlretrieve('https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/'
                            'bootstrap/spigot/build/libs/Geyser-Spigot.jar',
                            plugins_path / 'Geyser-Spigot.jar')
+print('* Floodgate')
 urllib.request.urlretrieve('https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/'
                            'spigot/build/libs/floodgate-spigot.jar',
                            plugins_path / 'floodgate-spigot.jar')
@@ -53,7 +55,7 @@ urllib.request.urlretrieve('https://ci.opencollab.dev/job/GeyserMC/job/Floodgate
 #       (does not break vanilla compatibility)
 #       Does not work with character creator skins, only "classic" skins.
 #       Is only useful for skins with extra 3D aspects, because Floodgate handles the 2D ones fine on its own.
-print('Downloading GeyserSkinManager')
+print('* GeyserSkinManager')
 geyserskinmanager_release = json.load(urllib.request.urlopen(
                                       'https://api.github.com/repos/Camotoy/GeyserSkinManager/releases/latest'))
 geyserskinmanager_jar_assets = [a for a in geyserskinmanager_release['assets'] if a['name'].endswith('-Spigot.jar')]
@@ -64,14 +66,14 @@ urllib.request.urlretrieve(geyserskinmanager_jar_assets[0]['browser_download_url
 #       fabric: https://www.curseforge.com/minecraft/mc-mods/emotecraft
 #       forge:  https://www.curseforge.com/minecraft/mc-mods/emotecraft-forge/
 #       (does not break vanilla compatibility)
-print('Downloading Emotecraft')
+print('* Emotecraft')
 urllib.request.urlretrieve('https://dev.bukkit.org/projects/emotecraft-bukkit/files/latest',
                            plugins_path / 'emotecraft-bukkit.jar')
 print('  * ProtocolLib')
 urllib.request.urlretrieve('https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/target/ProtocolLib.jar',
                            plugins_path / 'ProtocolLib.jar')
 # This one tries to make Bedrock emotes work with Emotecraft, but hasn't had much development yet.
-print('  * Geyser-emote-extension')
+print('* Geyser-emote-extension')
 geyseremote_release = json.load(urllib.request.urlopen(
                                 'https://api.github.com/repos/KosmX/geyser-emote-extension/releases/latest'))
 geyseremote_jar_assets = [a for a in geyseremote_release['assets']
@@ -81,26 +83,26 @@ urllib.request.urlretrieve(geyseremote_jar_assets[0]['browser_download_url'],
                            geyser_extensions_path / 'geyser-emote-extension.jar')
 
 # Discord integration #
-print('Downloading DiscordSRV')
+print('Downloading DiscordSRV from Github')
 discordsrv_release = json.load(urllib.request.urlopen('https://api.github.com/repos/DiscordSRV/DiscordSRV/releases/latest'))
 discordsrv_jar_assets = [a for a in discordsrv_release['assets'] if a['name'].endswith('.jar')]
 assert len(discordsrv_jar_assets) == 1
 urllib.request.urlretrieve(discordsrv_jar_assets[0]['browser_download_url'], plugins_path / 'DiscordSRV.jar')
 
-# A few random plugins I liked #
-# From bukkit.org
-print('Downloading Mini Blocks')
-urllib.request.urlretrieve('https://dev.bukkit.org/projects/mini-blocks/files/latest',
-                           plugins_path / 'mini-blocks.jar')
-# FIXME: Temporarily disabled due to a bug that is not fixed in this particular version
-# print('Downloading Dynmap')
-# urllib.request.urlretrieve('https://dev.bukkit.org/projects/dynmap/files/latest',
-#                            plugins_path / 'dynmap.jar')
-print('Downloading Chunky')
+print('Downloading various plugins from bukkit.org...')
+print('* Chunky')
 urllib.request.urlretrieve('https://dev.bukkit.org/projects/chunky-pregenerator/files/latest',
                            plugins_path / 'chunky-pregenerator.jar')
+# FIXME: Temporarily disabled due to a bug that is not fixed in this particular version
+# print('* Dynmap')
+# urllib.request.urlretrieve('https://dev.bukkit.org/projects/dynmap/files/latest',
+#                            plugins_path / 'dynmap.jar')
+print('* Mini Blocks')
+urllib.request.urlretrieve('https://dev.bukkit.org/projects/mini-blocks/files/latest',
+                           plugins_path / 'mini-blocks.jar')
 
 # From spigotmc.org
+print('Downloading various plugins from spigotmc.org...')
 spigotmc_downloader_api_endpoint = 'https://api.spiget.org/v2/resources/{resource_id}/download'
 # NOTE: There's very little need for the names here, but they serve as a bit of documentation too
 for resource in ['chestsort-api.59773',  # https://www.spigotmc.org/resources/chestsort-api.59773
@@ -112,7 +114,7 @@ for resource in ['chestsort-api.59773',  # https://www.spigotmc.org/resources/ch
                  'petting.74710',  # https://www.spigotmc.org/resources/petting.74710
                  'bsb-better-shulker-boxes-1-13-1-19-2.58837',  # https://www.spigotmc.org/resources/bsb-better-shulker-boxes-1-13-1-19-2.58837/  # noqa: E501
                  ]:
-    print('Downloading', ' '.join(resource.partition('.')[0].split('-')).title())
+    print('*', ' '.join(resource.partition('.')[0].split('-')).title())
     urllib.request.urlretrieve(
         spigotmc_downloader_api_endpoint.format(resource_id=resource.partition('.')[-1]),
         plugins_path / f"{resource.partition('.')[0]}.jar")
