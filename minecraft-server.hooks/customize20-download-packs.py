@@ -51,9 +51,11 @@ datapacks_form_data = {'packs': json.dumps({
     ],
     "mobs": [
         "more mob heads",
-        "silence mobs"
+        "silence mobs",
+        "double shulker shells",
+        "dragon drops",
     ],
-    "utilities": ["spawning spheres"],
+    "utilities": ["item averages"],
     "experimental": [
         "chunk loaders",
         "elevators",
