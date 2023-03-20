@@ -7,7 +7,7 @@ import urllib.parse
 import urllib.request
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--minecraft-version', type=str, default='1.19.3')
+parser.add_argument('--minecraft-version', type=str, default='1.19.4')
 parser.add_argument('chroot_path', type=pathlib.Path)
 args = parser.parse_args()
 
