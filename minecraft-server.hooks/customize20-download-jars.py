@@ -93,10 +93,9 @@ print('Downloading various plugins from bukkit.org...')
 print('* Chunky')
 urllib.request.urlretrieve('https://dev.bukkit.org/projects/chunky-pregenerator/files/latest',
                            plugins_path / 'chunky-pregenerator.jar')
-# FIXME: Temporarily disabled due to a bug that is not fixed in this particular version
-# print('* Dynmap')
-# urllib.request.urlretrieve('https://dev.bukkit.org/projects/dynmap/files/latest',
-#                            plugins_path / 'dynmap.jar')
+print('* Dynmap')
+urllib.request.urlretrieve('https://dev.bukkit.org/projects/dynmap/files/latest',
+                           plugins_path / 'dynmap.jar')
 print('* Mini Blocks')
 urllib.request.urlretrieve('https://dev.bukkit.org/projects/mini-blocks/files/latest',
                            plugins_path / 'mini-blocks.jar')
