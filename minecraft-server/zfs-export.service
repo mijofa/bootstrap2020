@@ -1,3 +1,8 @@
+# If this fails and the zpool is not imported at boot time,
+# you can forcefully import the zpool (without mounting it) with this command::
+#     zpool import -aNf
+#
+# Then simply reboot and let the export & reboot process solve the rest.
 [Unit]
 Description=Export ZFS pools
 Documentation=man:zpool(8)
