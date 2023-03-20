@@ -69,8 +69,11 @@ urllib.request.urlretrieve(geyserskinmanager_jar_assets[0]['browser_download_url
 print('* Emotecraft')
 urllib.request.urlretrieve('https://dev.bukkit.org/projects/emotecraft-bukkit/files/latest',
                            plugins_path / 'emotecraft-bukkit.jar')
+print('  * ProtocolLib')
+urllib.request.urlretrieve('https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/target/ProtocolLib.jar',
+                           plugins_path / 'ProtocolLib.jar')
 # This one tries to make Bedrock emotes work with Emotecraft, but hasn't had much development yet.
-print('* Geyser-emote-extension')
+print('  * Geyser-emote-extension')
 geyseremote_release = json.load(urllib.request.urlopen(
                                 'https://api.github.com/repos/KosmX/geyser-emote-extension/releases/latest'))
 geyseremote_jar_assets = [a for a in geyseremote_release['assets']
