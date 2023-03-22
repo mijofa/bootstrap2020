@@ -97,12 +97,19 @@ print('Downloading various plugins from bukkit.org...')
 print('* Chunky')
 urllib.request.urlretrieve('https://dev.bukkit.org/projects/chunky-pregenerator/files/latest',
                            plugins_path / 'chunky-pregenerator.jar')
-print('* Dynmap')
-urllib.request.urlretrieve('https://dev.bukkit.org/projects/dynmap/files/latest',
-                           plugins_path / 'dynmap.jar')
+# print('* Dynmap')
+# urllib.request.urlretrieve('https://dev.bukkit.org/projects/dynmap/files/latest',
+#                            plugins_path / 'dynmap.jar')
 print('* Mini Blocks')
 urllib.request.urlretrieve('https://dev.bukkit.org/projects/mini-blocks/files/latest',
                            plugins_path / 'mini-blocks.jar')
+
+print('* squaremap')
+squaremap_release = json.load(urllib.request.urlopen('https://api.github.com/repos/jpenilla/squaremap/releases/latest'))
+squaremap_jar_assets = [a for a in squaremap_release['assets']
+                        if (a['name'].endswith('.jar') and 'paper' in a['name'] and args.minecraft_version in a['name'])]
+assert len(squaremap_jar_assets) == 1
+urllib.request.urlretrieve(squaremap_jar_assets[0]['browser_download_url'], plugins_path / 'squaremap-paper.jar')
 
 # From spigotmc.org
 print('Downloading various plugins from spigotmc.org...')
