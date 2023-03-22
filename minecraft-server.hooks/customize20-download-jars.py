@@ -51,6 +51,10 @@ print('* Floodgate')
 urllib.request.urlretrieve('https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/'
                            'spigot/build/libs/floodgate-spigot.jar',
                            plugins_path / 'floodgate-spigot.jar')
+print('* GeyserOptionalPack')
+urllib.request.urlretrieve('https://ci.opencollab.dev/job/GeyserMC/job/GeyserOptionalPack/job/master/lastSuccessfulBuild/artifact/'
+                           'GeyserOptionalPack.mcpack',
+                           geyser_extensions_path / 'GeyserOptionalPack.mcpack')
 # NOTE: Requires `BedrockSkinUtility <https://github.com/Camotoy/BedrockSkinUtility>`_ client-side mod to be useful
 #       (does not break vanilla compatibility)
 #       Does not work with character creator skins, only "classic" skins.
@@ -117,3 +121,5 @@ for resource in ['chestsort-api.59773',  # https://www.spigotmc.org/resources/ch
     urllib.request.urlretrieve(
         spigotmc_downloader_api_endpoint.format(resource_id=resource.partition('.')[-1]),
         plugins_path / f"{resource.partition('.')[0]}.jar")
+
+# FIXME: Consider BetterPortals: https://github.com/Lauriethefish/BetterPortals

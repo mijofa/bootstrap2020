@@ -46,11 +46,12 @@ ExecStartPre=mkdir -p /srv/mcdata/plugins
 ExecStartPre=mkdir -p /srv/mcdata/world/datapacks
 ExecStartPre=mkdir -p /srv/mcdata/plugins/Geyser-Spigot/extensions
 # This will follow symlinks, searching for symlinks. Which will actually find broken symlinks
-ExecStartPre=find -L /srv/mcdata/world/datapacks /srv/mcdata/plugins/ -xdev -type l -ls -delete
+ExecStartPre=find -L /srv/mcdata/world/datapacks /srv/mcdata/plugins/ /srv/mcdata/plugins/Geyser-Spigot/packs/GeyserOptionalPack.mcpack -maxdepth 1 -xdev -type l -ls -delete
 # Symlink all the included files from /usr/lib/minecraft
-ExecStartPre=find /usr/lib/minecraft/plugins -type f -not -name 'paperclip.jar' -name '*.jar' -exec ln -sfv -t /srv/mcdata/plugins {} +
-ExecStartPre=find /usr/lib/minecraft/geyser-extensions -type f -name '*.jar' -exec ln -sfv -t /srv/mcdata/plugins/Geyser-Spigot/extensions {} +
-ExecStartPre=find /usr/lib/minecraft/datapacks -type f -name '*.zip' -exec ln -sfv -t /srv/mcdata/world/datapacks {} +
+ExecStartPre=find /usr/lib/minecraft/plugins -type f -name '*.jar' -exec ln -sfv -t /srv/mcdata/plugins/ {} +
+ExecStartPre=find /usr/lib/minecraft/datapacks -type f -name '*.zip' -exec ln -sfv -t /srv/mcdata/world/datapacks/ {} +
+ExecStartPre=find /usr/lib/minecraft/geyser-extensions -type f -name '*.jar' -exec ln -sfv -t /srv/mcdata/plugins/Geyser-Spigot/extensions/ {} +
+ExecStartPre=ln -sfv -t /srv/mcdata/plugins/Geyser-Spigot/packs/ /usr/lib/minecraft/geyser-extensions/GeyserOptionalPack.mcpack
 
 # FIXME: Make sense of all these arguments and figure out what ones to use for max efficiency.
 ExecStart=java \
