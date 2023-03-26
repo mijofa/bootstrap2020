@@ -105,7 +105,7 @@ urllib.request.urlretrieve('https://dev.bukkit.org/projects/mini-blocks/files/la
                            plugins_path / 'mini-blocks.jar')
 
 print('* squaremap')
-squaremap_release = json.load(urllib.request.urlopen('https://api.github.com/repos/DiscordSRV/DiscordSRV/releases/latest'))
+squaremap_release = json.load(urllib.request.urlopen('https://api.github.com/repos/jpenilla/squaremap/releases/latest'))
 squaremap_jar_assets = [a for a in squaremap_release['assets']
                         if (a['name'].endswith('.jar') and 'paper' in a['name'] and args.minecraft_version in a['name'])]
 assert len(squaremap_jar_assets) == 1
