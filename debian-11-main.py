@@ -145,9 +145,9 @@ group.add_argument('--authorized-keys-urls', metavar='URL', nargs='*',
 parser.add_argument('--upload-to', nargs='+', default=[], metavar='HOST',
                     type=hostname_or_fqdn_with_optional_user_at,
                     help='hosts to rsync the finished image to e.g. "root@tweak.prisonpc.com"')
-parser.add_argument('--github-release', metavar='USER/REPO:TAGNAME',
+parser.add_argument('--github-release', metavar='USER/REPO',
                     type=str,  # FIXME
-                    help='Github repo & release to upload the finished image to e.g. "mijofa/bootstrap2020:jellyfin-media-player_2022-06-10"')
+                    help='Github repo & release to upload the finished image to e.g. "mijofa/bootstrap2020"')
 parser.add_argument('--remove-afterward', action='store_true',
                     help='delete filesystem.squashfs after boot / upload (save space locally)')
 args = parser.parse_args()
