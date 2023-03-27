@@ -18,7 +18,8 @@ ExecStart=/usr/bin/jellyfinmediaplayer --terminal --tv --fullscreen
 # Hide the mouse cursor in the bottom-right
 # NOTE: Hardcodes a resolution max of 999999x999999,
 #       but if this code is still around when screens that large are mainstream I'd be impressed
-ExecStartPost=/bin/sleep 3
+# FIXME: Copy-pasted in tasmota-video.service
+ExecStartPost=/bin/sleep 1
 ExecStartPost=-/usr/bin/ydotool mousemove 999999 999999
 
 ExecStopPost=/usr/bin/pacmd set-sink-volume combined 65536
