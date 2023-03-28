@@ -123,6 +123,9 @@ for resource in ['chestsort-api.59773',  # https://www.spigotmc.org/resources/ch
                  # 'customcommandprefix.87224',  # https://www.spigotmc.org/resources/customcommandprefix.87224
                  'petting.74710',  # https://www.spigotmc.org/resources/petting.74710
                  'bsb-better-shulker-boxes-1-13-1-19-2.58837',  # https://www.spigotmc.org/resources/bsb-better-shulker-boxes-1-13-1-19-2.58837/  # noqa: E501
+                 'fire-aspect-ignite-tnt-candles-and-campfires-with-fire-aspect.103338',  # https://www.spigotmc.org/resources/fire-aspect-ignite-tnt-candles-and-campfires-with-fire-aspect.103338/  # noqa: E501
+                 'custom-protect-your-eyes-blindness-for-staring-at-the-sun.103279',  # https://www.spigotmc.org/resources/custom-protect-your-eyes-blindness-for-staring-at-the-sun.103279/  # noqa: E501
+                 'banner-portals-create-teleport-warps-using-banners.103215',  # https://www.spigotmc.org/resources/banner-portals-create-teleport-warps-using-banners.103215/  # noqa: E501
                  ]:
     print('*', ' '.join(resource.partition('.')[0].split('-')).title())
     urllib.request.urlretrieve(

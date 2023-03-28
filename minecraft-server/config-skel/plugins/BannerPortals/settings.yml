@@ -1,0 +1,53 @@
+# What a line in messages.yml will start with if you don't want to use messageformat
+# For example "Plugin > some message" is the default message
+# You can change it to "some message" if you replace the default with the following in messages.yml
+# example: "--some message"
+negateformat: --
+
+# Sets if players require permission "bannerportals.use" to use portals
+usepermissions: false
+
+# Sets if players require permission "bannerportals.create" to create portals
+createpermissions: false
+
+# Sets if only specific banners will create portals, definted in item.yml
+useitem: false
+
+# Sets if portals will only be created if the player is crouching
+crouchonly: true
+
+# Sets the cooldown, in seconds, before players can create more portals after linking the previous
+cooldown: 0
+
+# Sets the cooldown, in seconds, before players teleport using portals
+tpcooldown: 0
+
+# Sets if particles are shown on teleport
+tpparticles: true
+
+# Sets the sound effect when a player uses a portal
+# Full list of valid sounds can be found here https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
+
+# Set to the following to disable entry sound
+# entrysound: "-"
+entrysound: ENTITY_ITEM_PICKUP
+entryvolume: 100.0
+entrypitch: 1.0
+
+# Set to the following to disable exit sound
+# exitsound: "-"
+exitsound: ENTITY_ITEM_PICKUP
+exitvolume: 100.0
+exitpitch: 1.0
+
+# Restores lore of broken portals, if useitem is enabled and lore checks are used in item.yml
+
+# Not recommended to enable, due to the following:
+# On server stop, portals placed but not linked will not drop with lore when the server runs again
+# Banners broken by physics (explosions, floor breaking due to an external cause) will not drop with lore
+# When breaking one portal in a pair, the other breaks and drops as well
+# More resource-intensive
+
+# Note that if you want bannerportals to be exclusive (can only be obtained from a shop, lootcrate etc), you can simply set the name to a colored name
+# However, if you still insist on using lore and having them reusable, and is alright with aformentioned limitations, go ahead and enable
+restorelore: false
