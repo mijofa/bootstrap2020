@@ -38,15 +38,14 @@ ProtectControlGroups=true
 # Implies MountAPIVFS=yes
 
 # FIXME: Do some sort of rotation on the logs in /srv/mcdata/logs
-#        Turn them off somehow?
+#        Turn them off somehow relying instead on the journal?
 
 # FIXME: This data initialisation should probably be a separate unit file
 # Make the directories required for the symlinks
-ExecStartPre=mkdir -p /srv/mcdata/plugins
-ExecStartPre=mkdir -p /srv/mcdata/world/datapacks
-ExecStartPre=mkdir -p /srv/mcdata/plugins/Geyser-Spigot/extensions
+ExecStartPre=mkdir -p /srv/mcdata/plugins /srv/mcdata/world/datapacks /srv/mcdata/plugins/Geyser-Spigot/extensions /srv/mcdata/plugins/Geyser-Spigot/packs
 # This will follow symlinks, searching for symlinks. Which will actually find broken symlinks
-ExecStartPre=find -L /srv/mcdata/world/datapacks /srv/mcdata/plugins/ /srv/mcdata/plugins/Geyser-Spigot/packs/GeyserOptionalPack.mcpack -maxdepth 1 -xdev -type l -ls -delete
+# NOTE: If any of the specified files/directories don't exist this will error, we don't care
+ExecStartPre=-find -L /srv/mcdata/world/datapacks /srv/mcdata/plugins/ /srv/mcdata/plugins/Geyser-Spigot/packs/GeyserOptionalPack.mcpack -maxdepth 1 -xdev -type l -ls -delete
 # Symlink all the included files from /usr/lib/minecraft
 ExecStartPre=find /usr/lib/minecraft/plugins -type f -name '*.jar' -exec ln -sfv -t /srv/mcdata/plugins/ {} +
 ExecStartPre=find /usr/lib/minecraft/datapacks -type f -name '*.zip' -exec ln -sfv -t /srv/mcdata/world/datapacks/ {} +
