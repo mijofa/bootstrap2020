@@ -65,6 +65,12 @@ geyserskinmanager_release = json.load(urllib.request.urlopen(
 geyserskinmanager_jar_assets = [a for a in geyserskinmanager_release['assets'] if a['name'].endswith('-Spigot.jar')]
 assert len(geyserskinmanager_jar_assets) == 1
 urllib.request.urlretrieve(geyserskinmanager_jar_assets[0]['browser_download_url'], plugins_path / 'GeyserSkinManager-Spigot.jar')
+print('* GeyserHacks (Hurricane?(')
+geyserskinmanager_release = json.load(urllib.request.urlopen(
+                                      'https://api.github.com/repos/GeyserMC/Hurricane/releases/latest'))
+geyserskinmanager_jar_assets = [a for a in geyserskinmanager_release['assets'] if a['name'] == 'GeyserHacks.jar']
+assert len(geyserskinmanager_jar_assets) == 1
+urllib.request.urlretrieve(geyserskinmanager_jar_assets[0]['browser_download_url'], plugins_path / 'GeyserHacks.jar')
 
 # NOTE: Requires Emotecraft client-side mod to be useful
 #       fabric: https://www.curseforge.com/minecraft/mc-mods/emotecraft
