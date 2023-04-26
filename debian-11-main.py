@@ -73,19 +73,7 @@ parser.add_argument('--template', default='main',
                              'zfs',
                              'tvserver',
                              'understudy',
-                             'datasafe3',
                              'desktop',
-                             'desktop-inmate',
-                             'desktop-inmate-blackgate',
-                             'desktop-inmate-amc',
-                             'desktop-inmate-amc-library',
-                             'desktop-inmate-hcc-profile-a',
-                             'desktop-inmate-hcc-profile-b',
-                             'desktop-inmate-hcc-library',
-                             'desktop-inmate-hcc-games',
-                             'desktop-staff',
-                             'desktop-staff-amc',
-                             'desktop-staff-hcc',
                              'jellyfin-media-player',
                              'minecraft-server'
                              ),
@@ -94,12 +82,8 @@ parser.add_argument('--template', default='main',
                         'dban: erase recycled HDDs; '
                         'zfs: install/rescue Debian root-on-ZFS; '
                         'tvserver: turn free-to-air DVB-T into rtp:// IPTV;'
-                        'understudy: receive rsync-over-ssh push backup to local md/lvm/ext4; '
                         'datasafe3: rsnapshot rsync-over-ssh pull backup to local md/lvm/ext4; '
                         'desktop: tweaked XFCE; '
-                        'desktop-inmate: desktop w/ PrisonPC inmate/detainee stuff;'
-                        'desktop-staff:  desktop w/ PrisonPC operational staff stuff;'
-                        'desktop-inmate-blackgate: desktop w/ (almost) all PrisonPC-approved apps;'
                         '*-{amc,hcc}-*: site-specific stuff.'
                     ))
 group = parser.add_argument_group('optimization')
