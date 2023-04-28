@@ -85,8 +85,9 @@ assert len(emotecraft_jar_assets) == 1
 urllib.request.urlretrieve(emotecraft_jar_assets[0]['browser_download_url'],
                            plugins_path / 'emotecraft-bukkit.jar')
 print('  * ProtocolLib')
+# FIXME: This is a pre-release, the latest "stable" release was spewing errors into the logs
 protocollib_release = json.load(urllib.request.urlopen(
-                                'https://api.github.com/repos/dmulloy2/ProtocolLib/releases/latest'))
+                                'https://api.github.com/repos/dmulloy2/ProtocolLib/releases'))[0]
 protocollib_jar_assets = [a for a in protocollib_release['assets']
                           if a['name'] == 'ProtocolLib.jar']
 assert len(protocollib_jar_assets) == 1
