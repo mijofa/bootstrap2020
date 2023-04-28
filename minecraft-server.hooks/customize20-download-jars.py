@@ -65,7 +65,7 @@ geyserskinmanager_release = json.load(urllib.request.urlopen(
 geyserskinmanager_jar_assets = [a for a in geyserskinmanager_release['assets'] if a['name'].endswith('-Spigot.jar')]
 assert len(geyserskinmanager_jar_assets) == 1
 urllib.request.urlretrieve(geyserskinmanager_jar_assets[0]['browser_download_url'], plugins_path / 'GeyserSkinManager-Spigot.jar')
-print('* GeyserHacks (Hurricane?(')
+print('* GeyserHacks (Hurricane?)')
 geyserskinmanager_release = json.load(urllib.request.urlopen(
                                       'https://api.github.com/repos/GeyserMC/Hurricane/releases/latest'))
 geyserskinmanager_jar_assets = [a for a in geyserskinmanager_release['assets'] if a['name'] == 'GeyserHacks.jar']
@@ -77,13 +77,24 @@ urllib.request.urlretrieve(geyserskinmanager_jar_assets[0]['browser_download_url
 #       forge:  https://www.curseforge.com/minecraft/mc-mods/emotecraft-forge/
 #       (does not break vanilla compatibility)
 print('* Emotecraft')
-urllib.request.urlretrieve('https://dev.bukkit.org/projects/emotecraft-bukkit/files/latest',
+emotecraft_release = json.load(urllib.request.urlopen(
+                               'https://api.github.com/repos/KosmX/emotes/releases/latest'))
+emotecraft_jar_assets = [a for a in emotecraft_release['assets']
+                         if a['name'].endswith('-bukkit.jar')]
+assert len(emotecraft_jar_assets) == 1
+urllib.request.urlretrieve(emotecraft_jar_assets[0]['browser_download_url'],
                            plugins_path / 'emotecraft-bukkit.jar')
 print('  * ProtocolLib')
-urllib.request.urlretrieve('https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/target/ProtocolLib.jar',
+protocollib_release = json.load(urllib.request.urlopen(
+                                'https://api.github.com/repos/dmulloy2/ProtocolLib/releases/latest'))
+protocollib_jar_assets = [a for a in protocollib_release['assets']
+                          if a['name'] == 'ProtocolLib.jar']
+assert len(protocollib_jar_assets) == 1
+urllib.request.urlretrieve(protocollib_jar_assets[0]['browser_download_url'],
                            plugins_path / 'ProtocolLib.jar')
 # This one tries to make Bedrock emotes work with Emotecraft, but hasn't had much development yet.
-print('* Geyser-emote-extension')
+# This is the main reason I'm including Emotecraft at all though
+print('  * Geyser-emote-extension')
 geyseremote_release = json.load(urllib.request.urlopen(
                                 'https://api.github.com/repos/KosmX/geyser-emote-extension/releases/latest'))
 geyseremote_jar_assets = [a for a in geyseremote_release['assets']
