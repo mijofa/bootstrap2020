@@ -141,7 +141,7 @@ args = parser.parse_args()
 # The upload code gets a bit confused if we upload "foo-2022-01-01" twice in the same day.
 # As a quick-and-dirty workaround, include time in image name.
 # Cannot use RFC 3339 because PrisonPC tca3.py has VERY tight constraints on path name.
-destdir = (args.destdir / f'{args.template}-{datetime.datetime.now().strftime("%Y-%m-%d-%s")}')
+destdir = (args.destdir / f'{args.template}-{datetime.datetime.now().strftime("%Y-%m-%d")}')
 validate_unescaped_path_is_safe(destdir)
 destdir.mkdir(parents=True, mode=0o2775, exist_ok=True)
 
@@ -670,6 +670,7 @@ with tempfile.TemporaryDirectory() as td:
             '--hook-dir=minecraft-server.hooks',
             f'--essential-hook=tar-in {create_tarball("minecraft-server")} /']
            if args.template == 'minecraft-server' else []),
+         f'--customize-hook=echo "BOOTSTRAP2020_TEMPLATE={args.template}" >>$1/etc/os-release',
          'bullseye',
          destdir / 'filesystem.squashfs',
          'debian-11.sources',
