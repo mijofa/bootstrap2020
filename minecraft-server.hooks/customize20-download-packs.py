@@ -120,3 +120,6 @@ print('Downloading Custom Roleplay Data from CurseForge')
 # FIXME: This won't handle updates at all
 urllib.request.urlretrieve('https://mediafilez.forgecdn.net/files/3342/628/custom_roleplay_data_v1.0.zip',
                            download_path / pathlib.Path('custom_roleplay_data_v1.0.zip'))
+
+# Consider adding: https://mc.voodoobeard.com/#effective_netherite_armour
+# Might require replacing Armoured Elytra with: https://mc.voodoobeard.com/#plated_elytra
