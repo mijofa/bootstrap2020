@@ -140,6 +140,7 @@ args = parser.parse_args()
 
 # The upload code gets a bit confused if we upload "foo-2022-01-01" twice in the same day.
 # As a quick-and-dirty workaround, include time in image name.
+# Mike removed the time from the image name because it was making things harder to work with for the Jellyfin SOEs
 # Cannot use RFC 3339 because PrisonPC tca3.py has VERY tight constraints on path name.
 destdir = (args.destdir / f'{args.template}-{datetime.datetime.now().strftime("%Y-%m-%d")}')
 validate_unescaped_path_is_safe(destdir)
