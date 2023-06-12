@@ -24,11 +24,14 @@ The following packages found on this system are affected by this:
   - libctf0:amd64 (installed version: 2.35.2-2)
 * Source:qtwebengine-opensource-src
   Details: No security support upstream and backports not feasible, only for use on trusted content
-  - libqt5webengine-data (installed version: 5.15.2+dfsg-3)
-  - libqt5webengine5:amd64 (installed version: 5.15.2+dfsg-3)
-  - libqt5webenginecore5:amd64 (installed version: 5.15.2+dfsg-3)
-  - qml-module-qtwebengine:amd64 (installed version: 5.15.2+dfsg-3)
+  - libqt5webengine-data (installed version: 5.15.13+dfsg-1~deb12u1)
+  - libqt5webengine5:amd64 (installed version: 5.15.13+dfsg-1~deb12u1)
+  - libqt5webenginecore5:amd64 (installed version: 5.15.13+dfsg-1~deb12u1)
+  - qml-module-qtwebengine:amd64 (installed version: 5.15.13+dfsg-1~deb12u1)
 * Source:openjdk-17
   Details: See https://www.debian.org/releases/bullseye/amd64/release-notes/ch-information.en.html#openjdk-17
   Affected binary package:
   - openjdk-17-jre-headless:amd64 (installed version: 17.0.6+10-1~deb11u1)
+* Source:rust-rav1e
+  Details: See https://www.debian.org/releases/bookworm/amd64/release-notes/ch-information.en.html#golang-static-linking
+  - librav1e0:amd64 (installed version: 0.5.1-6)

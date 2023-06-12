@@ -672,16 +672,16 @@ with tempfile.TemporaryDirectory() as td:
             f'--essential-hook=tar-in {create_tarball("minecraft-server")} /']
            if args.template == 'minecraft-server' else []),
          f'--customize-hook=echo "BOOTSTRAP2020_TEMPLATE={args.template}" >>$1/etc/os-release',
-         'bullseye',
+         'bookworm',
          destdir / 'filesystem.squashfs',
-         'debian-11.sources',
+         'debian-12.sources',
          # https://github.com/rsnapshot/rsnapshot/issues/279
          # https://tracker.debian.org/news/1238555/rsnapshot-removed-from-testing/
          *(['deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/20210410/ bullseye main']
            if args.template == 'datasafe3' else []),
          *([f'deb [signed-by={pathlib.Path.cwd()}/debian-11-PrisonPC.packages/PrisonPC-archive-pubkey.asc] https://apt.cyber.com.au/PrisonPC bullseye desktop']  # noqa: E501
            if template_wants_PrisonPC_or_tvserver else []),
-         *([f'deb [signed-by={pathlib.Path.cwd()}/jellyfin-media-player/mijofa-archive-pubkey.asc] https://github.com/mijofa/mijofa.github.io/releases/download/apt-bullseye-amd64 ./']
+         *([f'deb [signed-by={pathlib.Path.cwd()}/jellyfin-media-player/mijofa-archive-pubkey.asc] https://github.com/mijofa/mijofa.github.io/releases/download/apt-bookworm-amd64 ./']
            if args.template == 'jellyfin-media-player' else []),
          ])
 
