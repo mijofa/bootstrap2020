@@ -71,8 +71,6 @@ parser.add_argument('--template', default='main',
                     choices=('main',
                              'dban',
                              'zfs',
-                             'tvserver',
-                             'understudy',
                              'desktop',
                              'jellyfin-media-player',
                              'minecraft-server'
@@ -81,16 +79,13 @@ parser.add_argument('--template', default='main',
                         'main: small CLI image; '
                         'dban: erase recycled HDDs; '
                         'zfs: install/rescue Debian root-on-ZFS; '
-                        'tvserver: turn free-to-air DVB-T into rtp:// IPTV;'
                         'desktop: tweaked XFCE; '
-                        '*-{amc,hcc}-*: site-specific stuff.'
+                        'jellyfin-media-player: Jellyfin frontend for use on TV systems; '
+                        'minecraft-server: Runs a standalone Minecraft server; '
                     ))
 group = parser.add_argument_group('optimization')
 group.add_argument('--optimize', choices=('size', 'speed', 'simplicity'), default='size',
                    help='build slower to get a smaller image? (default=size)')
-group.add_argument('--no-apps', dest='apps', action='store_false',
-                   help='omit browser/office/vlc'
-                   '     for faster turnaround when testing something else')
 mutex = group.add_mutually_exclusive_group()
 mutex.add_argument('--netboot-only', '--no-local-boot', action='store_true',
                    help='save space/time by omitting USB/SSD stuff')
@@ -167,15 +162,10 @@ if args.boot_test and args.physical_only:
 
 template_wants_GUI = args.template.startswith('desktop')
 template_wants_DVD = args.template.startswith('desktop')
-template_wants_disks = args.template in {'dban', 'zfs', 'understudy', 'datasafe3'}
-template_wants_big_uptimes = args.template in {'understudy', 'datasafe3'}
+template_wants_disks = args.template in {'dban', 'zfs'}
 
 if template_wants_GUI and args.virtual_only:
     logging.warning('GUI on cloud kernel is a bit hinkey')
-if args.template == 'tvserver' and args.virtual_only:
-    # The error message is quite obscure:
-    #     v4l/max9271.c:31:8: error: implicit declaration of function 'i2c_smbus_read_byte_data'
-    raise NotImplementedError("cloud kernel will FTBFS out-of-tree TBS driver")
 
 if args.reproducible:
     os.environ['SOURCE_DATE_EPOCH'] = str(int(args.reproducible.timestamp()))
@@ -198,18 +188,6 @@ if subprocess.check_output(
         ' make the /lib/systemd/resolv.conf line run much later.')
 
 # Use a separate declarative file for these long, boring lists.
-parser = configparser.ConfigParser()
-parser.read('debian-11-PrisonPC.site-apps.ini')
-if any('applications' != key.lower()
-       for section_dict in parser.values()
-       for key in section_dict):
-    raise NotImplementedError('Typo in .ini file?')
-site_apps = {
-    package_name
-    for section_name, section_dict in parser.items()
-    if args.template.startswith(section_name.lower())
-    for package_name in section_dict.get('applications', '').split()}
-
 with tempfile.TemporaryDirectory() as td:
     td = pathlib.Path(td)
     validate_unescaped_path_is_safe(td)
@@ -269,8 +247,6 @@ with tempfile.TemporaryDirectory() as td:
          '--include=linux-image-cloud-amd64'
          if args.virtual_only else
          # NOTE: can't --include= this because there are too many dpkg trigger problems.
-         '--customize-hook=chroot $1 apt install -y linux-image-inmate'
-         if args.template.startswith('desktop-inmate') and args.physical_only else
          '--include=linux-image-amd64',
          '--include=live-boot',
          *([f'--aptopt=Acquire::http::Proxy "{apt_proxy}"',  # save 12s
@@ -349,15 +325,6 @@ with tempfile.TemporaryDirectory() as td:
             if args.virtual_only else
             '--include=linux-headers-amd64']
            if args.template == 'zfs' else []),
-         # To mitigate vulnerability of rarely-rebuilt/rebooted SOEs,
-         # apply what security updates we can into transient tmpfs COW.
-         # This CANNOT apply kernel updates (https://bugs.debian.org/986613).
-         # This CANNOT persist updates across reboots (they re-download each boot).
-         # NOTE: booting with "persistence" and live-tools can solve those.
-         *(['--include=unattended-upgrades needrestart'
-            '    auto-apt-proxy'  # workaround --aptopt=Acquire::http::Proxy above
-            '    python3-gi powermgmt-base']  # unattended-upgrades wants these
-           if template_wants_big_uptimes else []),
          *(['--include=smartmontools'
             '    bsd-mailx'    # smartd calls mail(1), not sendmail(8)
             '    curl ca-certificates gnupg',  # update-smart-drivedb
@@ -388,20 +355,6 @@ with tempfile.TemporaryDirectory() as td:
             '    plymouth-themes',
             # Workaround https://bugs.debian.org/1004001 (FIXME: fix upstream)
             '--essential-hook=chronic chroot $1 apt install -y fontconfig-config',
-            *(['--include='
-               f'{" ".join(site_apps)}'
-               '    chromium chromium-l10n'
-               '    libreoffice-calc libreoffice-impress libreoffice-writer libreoffice-math'
-               '    libreoffice-gtk3'
-               '    libreoffice-gnome'  # fix double-click in sftp:// (for staff)
-               '    libreoffice-help-en-gb libreoffice-l10n-en-gb'
-               '    libreoffice-lightproof-en'
-               '    hunspell-en-au hunspell-en-gb hunspell-en-us'
-               '    hyphen-en-gb hyphen-en-us'
-               '    mythes-en-us'  # https://bugs.debian.org/929923 (Debian mythes-en-au is from openoffice 2.1!)
-               '    vlc'
-               '    libdvd-pkg'  # watch store-bought DVDs
-               ] if args.apps else []),
             # FIXME: in Debian 12, change --include=pulseaudio to --include=pipewire,pipewire-pulse
             # https://wiki.debian.org/PipeWire#Using_as_a_substitute_for_PulseAudio.2FJACK.2FALSA
             # linux-image-cloud-amd64 is CONFIG_DRM=n so Xorg sees no /dev/dri/card0.
@@ -442,7 +395,7 @@ with tempfile.TemporaryDirectory() as td:
             '--include=strace',
             '--customize-hook=rm -f $1/etc/sysctl.d/bootstrap2020-hardening.conf',
             *(['--include=xfce4-terminal']
-              if template_wants_GUI and not args.template.startswith('desktop-inmate') else [])]
+              if template_wants_GUI else [])]
            if args.backdoor_enable else []),
          *([f'--customize-hook=echo bootstrap:{git_description} >$1/etc/debian_chroot',
             '--customize-hook=chroot $1 bash -i; false',
@@ -460,7 +413,7 @@ with tempfile.TemporaryDirectory() as td:
          f'--customize-hook=download vmlinuz {destdir}/vmlinuz',
          f'--customize-hook=download initrd.img {destdir}/initrd.img',
          *(['--customize-hook=rm $1/boot/vmlinuz* $1/boot/initrd.img*']  # save 27s 27MB
-           if args.optimize != 'simplicity' and not template_wants_big_uptimes else []),
+           if args.optimize != 'simplicity' else []),
          *(['--verbose', '--logfile', destdir / 'mmdebstrap.log']
            if args.reproducible else []),
          *(['--include=phoc xwayland',  # Let's try Wayland instead of X11  NOTE: jellyfin-media-player has issues with sway, mako-notifier can't work with weston
@@ -606,41 +559,6 @@ def maybe_dummy_DVD(testdir: pathlib.Path) -> list:
          '--boot', 'order=n'])  # don't try to boot off the dummy disk
 
 
-def maybe_tvserver_ext2(testdir: pathlib.Path) -> list:
-    if not args.template == 'tvserver':
-        return []               # add no args to qemu cmdline
-    # Sigh, tvserver needs an ext2fs labelled "prisonpc-persist" and
-    # containing a specific password file.
-    tvserver_ext2_path = testdir / 'prisonpc-persist.ext2'
-    tvserver_tar_path = testdir / 'prisonpc-persist.tar'
-    with tarfile.open(tvserver_tar_path, 'w') as t:
-        for name in {'pgpass', 'msmtp-psk'}:
-            with io.BytesIO() as f:  # addfile() can't autoconvert StringIO.
-                f.write(
-                    pypass.PasswordStore().get_decrypted_password(
-                        f'PrisonPC/tvserver/{name}').encode())
-                f.flush()
-                member = tarfile.TarInfo()
-                member.name = name
-                member.mode = (
-                    0o0444 if name == 'msmtp-psk' else  # FIXME: yuk
-                    0o0400)
-                member.size = f.tell()
-                f.seek(0)
-                t.addfile(member, f)
-    subprocess.check_call(
-        ['genext2fs',
-         '--volume-label=prisonpc-persist'
-         '--block-size=1024',
-         '--size-in-blocks=1024',  # 1MiB
-         '--number-of-inodes=128',
-         '--tarball', tvserver_tar_path,
-         tvserver_ext2_path])
-    tvserver_tar_path.unlink()
-    return (                    # add these args to qemu cmdline
-        ['--drive', f'file={tvserver_ext2_path},format=raw,media=disk,if=virtio',
-         '--boot', 'order=n'])  # don't try to boot off the dummy disk
-
 if args.template == 'jellyfin-media-player':
     # This template uses Wayland instead of X11, so all other wants_GUI things aren't valid, but we still want the VM layer to do GUI things
     template_wants_GUI = True
@@ -675,31 +593,6 @@ if args.boot_test:
                                    f'mkpart root {size0+size1}MiB {size0+size1+size2}MiB'])
             subprocess.check_call(['/sbin/mkfs.fat', dummy_path, '-nESP', '-F32', f'--offset={size0*2048}', f'{size1*1024}', '-v'])
             subprocess.check_call(['/sbin/mkfs.ext4', dummy_path, '-Lroot', f'-FEoffset={(size0+size1)*1024*1024}', f'{size2}M'])
-            if args.template == 'understudy':
-                # Used by live-boot(7) module=alice for USB/SMB/NFS (but not plainroot!)
-                common_boot_args += ' module=alice '  # try filesystem.{module}.squashfs &c
-                (testdir / 'filesystem.alice.module').write_text('filesystem.squashfs alice.dir')
-                (testdir / 'alice.dir/etc/ssh').mkdir(parents=True)
-                (testdir / 'alice.dir/etc/hostname').write_text('alice-understudy')
-                (testdir / 'alice.dir/etc/ssh/ssh_host_dsa_key').symlink_to(
-                    '/srv/backup/root/etc/ssh/understudy/ssh_host_dsa_key')
-                (testdir / 'alice.dir/etc/ssh/ssh_host_dsa_key.pub').symlink_to(
-                    '/srv/backup/root/etc/ssh/understudy/ssh_host_dsa_key.pub')
-                (testdir / 'alice.dir/etc/fstab').write_text(
-                    'LABEL=ESP  /srv/backup/boot/efi vfat noatime,X-mount.mkdir=0755 0 2\n'
-                    'LABEL=root /srv/backup/root     ext4 noatime,X-mount.mkdir=0755 0 1\n')
-                # Used by bootstrap2020-only personality=alice for fetch=tftp://.
-                if not have_smbd:
-                    common_boot_args += ' personality=alice '  # try filesystem.{module}.squashfs &c
-                    subprocess.run(
-                        ['cpio', '--create', '--format=newc', '--no-absolute-filenames',
-                         '--file', (testdir / 'alice.cpio'),
-                         '--directory', (testdir / 'alice.dir')],
-                        check=True,
-                        text=True,
-                        input='\n'.join([
-                            str(path.relative_to(testdir / 'alice.dir'))
-                            for path in (testdir / 'alice.dir').glob('**/*')]))
         if args.netboot_only:
             subprocess.check_call(['cp', '-t', testdir, '--',
                                    '/usr/lib/PXELINUX/pxelinux.0',
@@ -758,7 +651,6 @@ if args.boot_test:
                '--drive', f'file={testdir}/filesystem.squashfs,format=raw,media=disk,if=virtio,readonly=on']
               if not args.netboot_only else []),
             *maybe_dummy_DVD(testdir),
-            *maybe_tvserver_ext2(testdir),
             *(['--drive', f'file={dummy_path},format=raw,media=disk,if=virtio',
                '--boot', 'order=n']  # don't try to boot off the dummy disk
               if template_wants_disks else [])])
