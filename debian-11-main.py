@@ -82,7 +82,6 @@ parser.add_argument('--template', default='main',
                         'dban: erase recycled HDDs; '
                         'zfs: install/rescue Debian root-on-ZFS; '
                         'tvserver: turn free-to-air DVB-T into rtp:// IPTV;'
-                        'datasafe3: rsnapshot rsync-over-ssh pull backup to local md/lvm/ext4; '
                         'desktop: tweaked XFCE; '
                         '*-{amc,hcc}-*: site-specific stuff.'
                     ))
@@ -170,29 +169,13 @@ template_wants_GUI = args.template.startswith('desktop')
 template_wants_DVD = args.template.startswith('desktop')
 template_wants_disks = args.template in {'dban', 'zfs', 'understudy', 'datasafe3'}
 template_wants_big_uptimes = args.template in {'understudy', 'datasafe3'}
-template_wants_PrisonPC = (
-    args.template.startswith('desktop-inmate') or  # noqa: W504
-    args.template.startswith('desktop-staff'))
-template_wants_PrisonPC_or_tvserver = (  # UGH!
-    template_wants_PrisonPC or args.template == 'tvserver')
-template_wants_PrisonPC_staff_network = (   # UGH!
-    args.template.startswith('desktop-staff') or args.template == 'tvserver')
 
-if args.template == 'datasafe3' and args.ssh_server != 'openssh-server':
-    raise NotImplementedError('datasafe3 only supports OpenSSH')
-if template_wants_PrisonPC and args.ssh_server != 'openssh-server':
-    logging.warning('prisonpc.tca3 server code expects OpenSSH')
 if template_wants_GUI and args.virtual_only:
     logging.warning('GUI on cloud kernel is a bit hinkey')
 if args.template == 'tvserver' and args.virtual_only:
     # The error message is quite obscure:
     #     v4l/max9271.c:31:8: error: implicit declaration of function 'i2c_smbus_read_byte_data'
     raise NotImplementedError("cloud kernel will FTBFS out-of-tree TBS driver")
-if template_wants_PrisonPC and args.boot_test and not (args.netboot_only and have_smbd):
-    raise NotImplementedError(
-        'PrisonPC --boot-test needs --netboot-only and /usr/sbin/smbd.'
-        ' Without these, site.dir cannot patch /etc/hosts, so'
-        ' boot-test ldap/nfs/squid/pete redirect will not work!')
 
 if args.reproducible:
     os.environ['SOURCE_DATE_EPOCH'] = str(int(args.reproducible.timestamp()))
@@ -366,41 +349,6 @@ with tempfile.TemporaryDirectory() as td:
             if args.virtual_only else
             '--include=linux-headers-amd64']
            if args.template == 'zfs' else []),
-         *([f'--essential-hook=tar-in {create_tarball("debian-11-PrisonPC-tvserver")} /',
-            # workarounds for garbage hardware
-            *('--include=firmware-bnx2',  # HCC's tvserver has evil Broadcom NICs
-              '--hook-dir=debian-11-PrisonPC-tvserver.hooks',
-              '--include=build-essential git patchutils libproc-processtable-perl',  # driver
-              '--include=wget2 ca-certificates bzip2',  # firmware
-              '--include=linux-headers-cloud-amd64' if args.virtual_only else '--include=linux-headers-amd64'),
-            '--include='
-            # FIXME: dvblast 2.2 works, dvblast 3.0 FAILS.  Does dvblast 3.4 work???
-            #        https://alloc.cyber.com.au/task/task.php?taskID=31579
-            '    dvblast'        # DVB-T → rtp://
-            '    ffmpeg'         # DVD | DVB-T → .ts
-            '    multicat'       # .ts → rtp://
-            '    dvb-apps'       # femon (for check_tv.py - FIXME: use dvblast3?)
-            '    procps'         # pkill (for update-config.py - FIXME: use systemctl reload)
-            '    tv-grab-dvb python3-psycopg2 python3-lxml'  # DVB-T → XML → postgres (EPG)
-            '    w-scan'  # Used at new sites to find frequency MHz.
-            ]
-           if args.template == 'tvserver' else []),
-         *(['--include=mdadm lvm2 rsync'
-            '    e2fsprogs'  # no slow fsck on failover (e2scrub_all.timer)
-            '    quota ']    # no slow quotacheck on failover
-           if args.template == 'understudy' else []),
-         *(['--include=mdadm rsnapshot'
-            '    e2fsprogs'  # no slow fsck on failover (e2scrub_all.timer)
-            '    extlinux parted'  # debugging/rescue
-            '    python3 bsd-mailx logcheck-database'  # journalcheck dependencies
-            '    ca-certificates',  # for msmtp to verify gmail
-            f'--essential-hook=tar-in {create_tarball("debian-11-datasafe3")} /',
-            # FIXME: symlink didn't work, so hard link for now.
-            '--customize-hook=env --chdir=$1/lib/systemd/system cp -al ssh.service ssh-sftponly.service',
-            # Pre-configure /boot a little more than usual, as a convenience for whoever makes the USB key.
-            '--customize-hook=cp -at $1/boot/ $1/usr/bin/extlinux $1/usr/lib/EXTLINUX/mbr.bin',
-            ]
-           if args.template == 'datasafe3' else []),
          # To mitigate vulnerability of rarely-rebuilt/rebooted SOEs,
          # apply what security updates we can into transient tmpfs COW.
          # This CANNOT apply kernel updates (https://bugs.debian.org/986613).
@@ -452,42 +400,8 @@ with tempfile.TemporaryDirectory() as td:
                '    hyphen-en-gb hyphen-en-us'
                '    mythes-en-us'  # https://bugs.debian.org/929923 (Debian mythes-en-au is from openoffice 2.1!)
                '    vlc'
-               f'   {"libdvdcss2" if template_wants_PrisonPC else "libdvd-pkg"}'  # watch store-bought DVDs
+               '    libdvd-pkg'  # watch store-bought DVDs
                ] if args.apps else []),
-            *([('--include=prisonpc-bad-package-conflicts-everyone'
-                if args.template.startswith('desktop-staff') else
-                '--include=prisonpc-bad-package-conflicts-inmates'),
-               '--include='
-               '    nftables'
-               '    nfs-client-quota'          # for quota-reminder.py
-               '    python3-gi gir1.2-gtk-3.0'  # for acceptable-use-policy.py
-               '    gir1.2-wnck-3.0'            # for popcon.py
-               '    gir1.2-notify-0.7'          # for log-terminal-attempt.py (et al)
-               '    libgtk-3-bin'  # gtk-launch (used by some .desktop files)
-               '    python3-systemd python3-pyudev'  # for *-snitch.py
-               '    python3-xdg'                     # for popcon.py
-               '    libgs9'                          # for lawyers-make-bad-pdfs/compress.py
-               '    genisoimage lsdvd'  # for disc-snitch.py
-               '    fonts-prisonpc'
-               '    x11vnc'  # https://en.wikipedia.org/wiki/Panopticon#Surveillance_technology
-               '    prayer-templates-prisonpc'
-               '    prisonpc-chromium-hunspell-dictionaries'
-               ]
-              if template_wants_PrisonPC else []),
-            # Staff and generic (non-PrisonPC) desktops
-            *(['--include=xfce4-terminal mousepad xfce4-screenshooter']
-              if not args.template.startswith('desktop-inmate') else []),
-            # Staff-only packages
-            *(['--include='
-               '    gvncviewer'  # Control desktop (vnc://)
-               '    gvfs-backends gvfs-fuse openssh-client'  # Browse p123's home (sftp://)
-               '    python3-vlc asunder xfburn'  # Rip movie DVD, rip music CD, burn data DVD
-               # NOTE: exfat-fuse removed as exfat is now in-kernel.
-               # https://kernelnewbies.org/Linux_5.7#New_exFAT_file_system
-               # FIXME: remove ntfs-3g when 5.15 reaches bullseye-backports.
-               # https://kernelnewbies.org/Linux_5.15#New_NTFS_file_system_implementation
-               '    ntfs-3g'  # USB HDDs
-               ] if args.template.startswith('desktop-staff') else []),
             # FIXME: in Debian 12, change --include=pulseaudio to --include=pipewire,pipewire-pulse
             # https://wiki.debian.org/PipeWire#Using_as_a_substitute_for_PulseAudio.2FJACK.2FALSA
             # linux-image-cloud-amd64 is CONFIG_DRM=n so Xorg sees no /dev/dri/card0.
@@ -501,14 +415,10 @@ with tempfile.TemporaryDirectory() as td:
             '    i965-va-driver-shaders'  # Intel, non-free, 2013-2017
             '    intel-media-va-driver-non-free',  # Intel, non-free, 2017+
             # For https://github.com/cyberitsolutions/bootstrap2020/blob/main/debian-11-desktop/xfce-spice-output-resizer.py
-            *(['--include=python3-xlib python3-dbus'
-               if args.template.startswith('desktop-inmate') else
-               '--include=python3-xlib python3-dbus spice-vdagent']
+            *(['--include=python3-xlib python3-dbus spice-vdagent']
               if not args.physical_only else []),
             # Seen on H81 and H110 Pioneer AIOs.
             # Not NEEDED, just makes journalctl -p4' quieter.
-            *(['--include=firmware-realtek firmware-misc-nonfree']
-              if template_wants_PrisonPC and not args.virtual_only else []),
             f'--essential-hook=tar-in {create_tarball("debian-11-desktop")} /'
             ]
            if template_wants_GUI else []),
@@ -516,18 +426,7 @@ with tempfile.TemporaryDirectory() as td:
          # FIXME: WHY?  Nothing in the package description sounds useful.
          # FIXME: --boot-test's kvm doesn't know to create the device!!!
          *(['--include=qemu-guest-agent']
-           if (not args.physical_only and  # noqa: W504
-               not args.template.startswith('desktop-inmate')) else []),
-         *(['--include=libnss-ldapd libpam-ldapd unscd',
-            f'--essential-hook=tar-in {create_tarball("debian-11-PrisonPC")} /',
-            f'--essential-hook=tar-in {create_tarball("debian-11-PrisonPC-staff")} /'
-            if args.template.startswith('desktop-staff') else
-            f'--essential-hook=tar-in {create_tarball("debian-11-PrisonPC-inmate")} /',
-            '--essential-hook={'
-            '     echo libnss-ldapd libnss-ldapd/nsswitch multiselect passwd group;'
-            '     } | chroot $1 debconf-set-selections',
-            ]
-           if template_wants_PrisonPC else []),
+           if not args.physical_only else []),
          *([f'--include={args.ssh_server}',
             f'--essential-hook=tar-in {authorized_keys_tar_path} /',
             # Work around https://bugs.debian.org/594175 (dropbear & openssh-server)
@@ -562,11 +461,6 @@ with tempfile.TemporaryDirectory() as td:
          f'--customize-hook=download initrd.img {destdir}/initrd.img',
          *(['--customize-hook=rm $1/boot/vmlinuz* $1/boot/initrd.img*']  # save 27s 27MB
            if args.optimize != 'simplicity' and not template_wants_big_uptimes else []),
-         *(['--dpkgopt=debian-11-PrisonPC/omit-low-level-docs.conf',
-            '--hook-dir=debian-11-PrisonPC.hooks']
-           if template_wants_PrisonPC else []),
-         *(['--hook-dir=debian-11-PrisonPC-inmate.hooks']
-           if args.template.startswith('desktop-inmate') else []),
          *(['--verbose', '--logfile', destdir / 'mmdebstrap.log']
            if args.reproducible else []),
          *(['--include=phoc xwayland',  # Let's try Wayland instead of X11  NOTE: jellyfin-media-player has issues with sway, mako-notifier can't work with weston
@@ -677,10 +571,6 @@ with tempfile.TemporaryDirectory() as td:
          'debian-12.sources',
          # https://github.com/rsnapshot/rsnapshot/issues/279
          # https://tracker.debian.org/news/1238555/rsnapshot-removed-from-testing/
-         *(['deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/20210410/ bullseye main']
-           if args.template == 'datasafe3' else []),
-         *([f'deb [signed-by={pathlib.Path.cwd()}/debian-11-PrisonPC.packages/PrisonPC-archive-pubkey.asc] https://apt.cyber.com.au/PrisonPC bullseye desktop']  # noqa: E501
-           if template_wants_PrisonPC_or_tvserver else []),
          *([f'deb [signed-by={pathlib.Path.cwd()}/jellyfin-media-player/mijofa-archive-pubkey.asc] https://github.com/mijofa/mijofa.github.io/releases/download/apt-bookworm-amd64 ./']
            if args.template == 'jellyfin-media-player' else []),
          ])
@@ -760,9 +650,7 @@ if args.boot_test:
     # This is not boot-time configurable for paranoia reasons.
     # Therefore, qemu needs to use compatible IP addresses.
     network, tftp_address, dns_address, smb_address, master_address = (
-        ('10.0.2.0/24', '10.0.2.2', '10.0.2.3', '10.0.2.4', '10.0.2.100')
-        if template_wants_PrisonPC_staff_network else
-        ('10.128.2.0/24', '10.128.2.2', '10.128.2.3', '10.128.2.4', '10.128.2.100'))
+        '10.128.2.0/24', '10.128.2.2', '10.128.2.3', '10.128.2.4', '10.128.2.100')
     with tempfile.TemporaryDirectory(dir=destdir) as testdir:
         testdir = pathlib.Path(testdir)
         validate_unescaped_path_is_safe(testdir)
@@ -833,27 +721,6 @@ if args.boot_test:
         # We use guestfwd= to forward ldaps://10.0.2.100 to the real LDAP server.
         # We need a simple A record in the guest.
         # This is a quick-and-dirty way to achieve that (FIXME: do better).
-        if template_wants_PrisonPC_or_tvserver:
-            (testdir / 'filesystem.module').write_text('filesystem.squashfs site.dir')
-            (testdir / 'site.dir').mkdir(exist_ok=True)
-            (testdir / 'site.dir/etc').mkdir(exist_ok=True)
-            (testdir / 'site.dir/etc/hosts').write_text(
-                '127.0.2.1 webmail\n'
-                f'{master_address} PrisonPC PrisonPC-inmate PrisonPC-staff ppc-services PPCAdm')
-            (testdir / 'site.dir/prayer.errata').write_text(
-                'ERRATA=--config-option default_domain=tweak.prisonpc.com')
-            if 'inmate' in args.template:
-                # Simulate a site-specific desktop image (typically not done for staff).
-                (testdir / 'site.dir/wallpaper.jpg').write_bytes(pathlib.Path('wallpaper.svg').read_bytes())
-            (testdir / 'site.dir/etc/nftables.conf.d').mkdir(exist_ok=True)
-            (testdir / 'site.dir/etc/nftables.conf.d/11-PrisonPC-master-server-address.conf').write_text(
-                f'define PrisonPC = {master_address};')
-            (testdir / 'site.dir/etc/nftables.conf.d/90-boot-test.conf').write_text(
-                pathlib.Path('debian-11-PrisonPC/firewall-boot-test.nft').read_text())
-            if args.template.startswith('desktop-inmate'):
-                (testdir / 'site.dir/etc/systemd/system/x11vnc.service.d').mkdir(parents=True)
-                (testdir / 'site.dir/etc/systemd/system/x11vnc.service.d/zz-boot-test.conf').write_text(
-                    f'[Service]\nEnvironment=X11VNC_EXTRA_ARGS="-allow {tftp_address}"\n')
         subprocess.check_call([
             # NOTE: doesn't need root privs
             'qemu-system-x86_64',
@@ -879,18 +746,9 @@ if args.boot_test:
                 f'hostname={args.template}.{domain}',
                 f'dnssearch={domain}',
                 f'hostfwd=tcp::{args.host_port_for_boot_test_ssh}-:22',
-                *([f'hostfwd=tcp::{args.host_port_for_boot_test_vnc}-:5900']
-                  if template_wants_PrisonPC else []),
                 *([f'smb={testdir}'] if have_smbd else []),
                 *([f'tftp={testdir}', 'bootfile=pxelinux.0']
                   if args.netboot_only else []),
-                *([f'guestfwd=tcp:{master_address}:{port}-cmd:'
-                   f'ssh cyber@tweak.prisonpc.com -F /dev/null -y -W {host}:{port}'
-                   for port in {636, 2049, 443, 993, 3128, 631, 2222, 5432}
-                   for host in {'prisonpc-staff.lan'
-                                if template_wants_PrisonPC_staff_network else
-                                'prisonpc-inmate.lan'}]
-                  if template_wants_PrisonPC_or_tvserver else []),
             ]),
             *(['--kernel', testdir / 'vmlinuz',
                '--initrd', testdir / 'initrd.img',
