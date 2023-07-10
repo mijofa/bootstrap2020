@@ -83,6 +83,11 @@ parser.add_argument('--template', default='main',
                         'jellyfin-media-player: Jellyfin frontend for use on TV systems; '
                         'minecraft-server: Runs a standalone Minecraft server; '
                     ))
+parser.add_argument('--rpi', default=None, choices=['armel'],
+                    help=('Target Raspberry Pi devices instead of basic amd64.'
+                          'armel: Raspberry Pi Zero, Zero W and 1;'
+                          'armhf: (UNTESTED) Raspberry Pi 2;'
+                          'arm64: (UNTESTED) Raspberry Pi 3 and 4;'))
 group = parser.add_argument_group('optimization')
 group.add_argument('--optimize', choices=('size', 'speed', 'simplicity'), default='size',
                    help='build slower to get a smaller image? (default=size)')
@@ -245,6 +250,9 @@ with tempfile.TemporaryDirectory() as td:
          'mmdebstrap',
          '--dpkgopt=force-confold',  # https://bugs.debian.org/981004
          '--aptopt=APT::AutoRemove::SuggestsImportant "false"',  # fix autoremove
+         '--include=linux-image-rpi' if args.rpi == 'armel' else
+         '--include=linux-image-rt-armmp' if args.rpi == 'armhf' else
+         '--include=linux-image-rt-arm64' if args.rpi == 'arm64' else
          '--include=linux-image-cloud-amd64'
          if args.virtual_only else
          # NOTE: can't --include= this because there are too many dpkg trigger problems.
@@ -305,7 +313,7 @@ with tempfile.TemporaryDirectory() as td:
          # The emulator is called "microcode", and is full of security vulnerabilities.
          # Make sure security patches for microcode for *ALL* CPUs are included.
          # By default, it tries to auto-detect the running CPU, so only patches the CPU of the build server.
-         *(['--include=intel-microcode amd64-microcode',
+         *([*(['--include=intel-microcode amd64-microcode'] if not args.rpi else []),
             '--essential-hook=>$1/etc/default/intel-microcode echo IUCODE_TOOL_INITRAMFS=yes IUCODE_TOOL_SCANCPUS=no',
             '--essential-hook=>$1/etc/default/amd64-microcode echo AMD64UCODE_INITRAMFS=yes',
             '--components=main contrib non-free']
@@ -411,8 +419,9 @@ with tempfile.TemporaryDirectory() as td:
          # FIXME: remove once that can/does use rdsquashfs --cat (master server is Debian 11)
          *([f'--customize-hook=download /var/lib/dpkg/status {destdir}/dpkg.status']
            if args.optimize != 'simplicity' else []),
-         f'--customize-hook=download vmlinuz {destdir}/vmlinuz',
-         f'--customize-hook=download initrd.img {destdir}/initrd.img',
+         *([f'--customize-hook=download vmlinuz {destdir}/vmlinuz',
+            f'--customize-hook=download initrd.img {destdir}/initrd.img']
+           if not args.rpi else [f'--customize-hook=sync-out /boot/firmware/ {destdir}/']),
          *(['--customize-hook=rm $1/boot/vmlinuz* $1/boot/initrd.img*']  # save 27s 27MB
            if args.optimize != 'simplicity' else []),
          *(['--verbose', '--logfile', destdir / 'mmdebstrap.log']
@@ -519,6 +528,36 @@ with tempfile.TemporaryDirectory() as td:
             f'--essential-hook=tar-in {create_tarball("minecraft-server")} /']
            if args.template == 'minecraft-server' else []),
          f'--customize-hook=echo "BOOTSTRAP2020_TEMPLATE={args.template}" >>$1/etc/os-release',
+         *([f'--architecture={args.rpi}',
+            '--include=raspi-firmware',
+            *(['--include=firmware-brcm80211']
+              if template_wants_WiFi else []),
+            # '--include=python3-rpi.gpio',
+            # I want this to run **before** installing raspi-firmware, or at least before a final `update-initramfs`
+            # is customize-hook good enough anyway?
+            ('--essential-hook=printf >$1/etc/default/raspi-firmware-custom "%s\n"'  # This eventually makes it to /boot/firmware/config.txt
+             # # https://www.raspberrypi.com/documentation/computers/config_txt.html#hdmi_enable_4kp60-raspberry-pi-4-only
+             # # UNTESTED, seems like a good idea if used for media playback purposes, but I don't have an rPi4
+             # ' "hdmi_enable_4kp60=1"'
+             # # https://www.raspberrypi.com/documentation/computers/config_txt.html#disable_fw_kms_setup
+             # # FIXME: Why is "let the kernel handle it" not the default? O.o
+             # ' "disable_fw_kms_setup=1"'
+             # https://www.raspberrypi.com/documentation/computers/config_txt.html#disable_overscan
+             # Overscan is just annoying, ideally disable it everywhere, but some specific TVs will require it
+             ' "disable_overscan=1"'
+            ),
+            # We're using live-boot directly from the fat32 boot/firmware filesystem,
+            # stop using partition 2 as "root".
+            '--essential-hook=echo >>$1/etc/default/raspi-firmware "ROOTPART=/dev/mmcblk0p1"',
+            # https://wiki.debian.org/RaspberryPi4#Root_file_system_on_a_USB_disk
+            # Probably not useful to me, but shouldn't hurt, and might avoid some confusion later down the track
+            # FIXME: Include `raspberrypi_cpufreq` & `raspberrypi_hwmon`?
+            '--essential-hook=printf >$1/etc/initramfs-tools/modules "%s\n" "reset_raspberrypi"',
+            '--essential-hook=echo >$1/etc/default/raspi-extra-cmdline "boot=live live-media-path="',
+            # FIXME: Somehow implement a/b partitions for some form of auto-updates later?
+            #        https://www.raspberrypi.com/documentation/computers/config_txt.html#autoboot-txt
+            #        Likely requires using u-boot or similar.
+           ] if args.rpi else []),
          'bookworm',
          destdir / 'filesystem.squashfs',
          'debian-12.sources',
