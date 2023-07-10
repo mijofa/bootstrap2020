@@ -160,6 +160,7 @@ if args.boot_test and args.netboot_only and not have_smbd:
 if args.boot_test and args.physical_only:
     raise NotImplementedError("You can't --boot-test a --physical-only (--no-virtual) build!")
 
+template_wants_WiFi = args.template in {'jellyfin-media-player', }
 template_wants_GUI = args.template.startswith('desktop')
 template_wants_DVD = args.template.startswith('desktop')
 template_wants_disks = args.template in {'dban', 'zfs'}
@@ -416,6 +417,8 @@ with tempfile.TemporaryDirectory() as td:
            if args.optimize != 'simplicity' else []),
          *(['--verbose', '--logfile', destdir / 'mmdebstrap.log']
            if args.reproducible else []),
+         *(['--include=wpasupplicant firmware-realtek firmware-iwlwifi']
+           if template_wants_WiFi else []),
          *(['--include=phoc xwayland',  # Let's try Wayland instead of X11  NOTE: jellyfin-media-player has issues with sway, mako-notifier can't work with weston
 
             # copied from wants_GUI section above because while this does want a GUI, it's not an X11 GUI so we can't use that entire section
@@ -435,7 +438,6 @@ with tempfile.TemporaryDirectory() as td:
             '--include=firmware-amd-graphics firmware-intel-sound',  # I don't think I'm using any of this hardware, but shouldn't hurt
             # NOTE: firmware-ivtv has an EULA that needs to be agreed to, rather than fixing that I'm just leaving it out
             '--include=firmware-samsung',  # I don't understand how codec firmwares work, but given this is a media machine I might as well include them
-            '--include=firmware-realtek firmware-iwlwifi',  # WiFi firmwares needed for WiFi support on some hardware
             # I continued getting errors about failing to load iwlwifi firmware, but it worked.
             # it did *not* work without the firmware-iwlwifi package though,
             # so I suspect it fellback on a firmware for an older chipset from the same package
@@ -475,8 +477,6 @@ with tempfile.TemporaryDirectory() as td:
             '--include=grim',  # Wayland screenshot utility, not really using it yet but would like to
 
             '--include=python3-github',  # Github API library for the auto updater script
-
-            '--include=wpasupplicant',  # Using WiFi for locally booted Jellyfin systems
 
             '--include=lvm2',  # So that Ron can recover some data from repuprosed system if necessary
 
