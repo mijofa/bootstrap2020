@@ -73,7 +73,8 @@ parser.add_argument('--template', default='main',
                              'zfs',
                              'desktop',
                              'jellyfin-media-player',
-                             'minecraft-server'
+                             'minecraft-server',
+                             'cec-androidtv-fixes'
                              ),
                     help=(
                         'main: small CLI image; '
@@ -82,6 +83,7 @@ parser.add_argument('--template', default='main',
                         'desktop: tweaked XFCE; '
                         'jellyfin-media-player: Jellyfin frontend for use on TV systems; '
                         'minecraft-server: Runs a standalone Minecraft server; '
+                        'cec-androidtv-fixes: Runs some workarounds for annoyances with AndroidTV; '
                     ))
 parser.add_argument('--rpi', default=None, choices=['armel'],
                     help=('Target Raspberry Pi devices instead of basic amd64.'
@@ -165,7 +167,7 @@ if args.boot_test and args.netboot_only and not have_smbd:
 if args.boot_test and args.physical_only:
     raise NotImplementedError("You can't --boot-test a --physical-only (--no-virtual) build!")
 
-template_wants_WiFi = args.template in {'jellyfin-media-player', }
+template_wants_WiFi = args.template in {'jellyfin-media-player', 'cec-androidtv-fixes'}
 template_wants_GUI = args.template.startswith('desktop')
 template_wants_DVD = args.template.startswith('desktop')
 template_wants_disks = args.template in {'dban', 'zfs'}
@@ -530,8 +532,9 @@ with tempfile.TemporaryDirectory() as td:
          f'--customize-hook=echo "BOOTSTRAP2020_TEMPLATE={args.template}" >>$1/etc/os-release',
          *([f'--architecture={args.rpi}',
             '--include=raspi-firmware',
-            *(['--include=firmware-brcm80211']
-              if template_wants_WiFi else []),
+            *(['--include=firmware-atheros firmware-brcm80211 firmware-libertas firmware-misc-nonfree firmware-realtek',
+               '--include=wireless-regdb',  # No idea why this one is necessary, but I had a bunch of erros in the log without it
+               ] if template_wants_WiFi else []),
             # '--include=python3-rpi.gpio',
             # I want this to run **before** installing raspi-firmware, or at least before a final `update-initramfs`
             # is customize-hook good enough anyway?
@@ -553,7 +556,8 @@ with tempfile.TemporaryDirectory() as td:
             # Probably not useful to me, but shouldn't hurt, and might avoid some confusion later down the track
             # FIXME: Include `raspberrypi_cpufreq` & `raspberrypi_hwmon`?
             '--essential-hook=printf >$1/etc/initramfs-tools/modules "%s\n" "reset_raspberrypi"',
-            '--essential-hook=echo >$1/etc/default/raspi-extra-cmdline "boot=live live-media-path="',
+            # FIXME: net.ifnames=0 is currently needed for WiFi persistent config... do better.
+            '--essential-hook=echo >$1/etc/default/raspi-extra-cmdline "net.ifnames=0 boot=live live-media-path="',
             # FIXME: Somehow implement a/b partitions for some form of auto-updates later?
             #        https://www.raspberrypi.com/documentation/computers/config_txt.html#autoboot-txt
             #        Likely requires using u-boot or similar.
