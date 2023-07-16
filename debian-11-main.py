@@ -430,6 +430,16 @@ with tempfile.TemporaryDirectory() as td:
            if args.reproducible else []),
          *(['--include=wpasupplicant firmware-realtek firmware-iwlwifi']
            if template_wants_WiFi else []),
+         *(['--include=python3-cec',  # Needed to control the HDMI amplifier
+            '--include=python3-pip',  # Needed because python3-androidtvremote2 is not packaged for Debian
+            '--include=python3-aiofiles python3-cryptography python3-protobuf',  # Dependencies of python3-androidtvremote2
+            # NOTE: We could use pip from the host system with `--root=$1` but that adds more dependencies in the host,
+            #       and likely to cause version mismatch between the OS and the Python library
+            '--customize-hook=chroot $1 python3 -m pip install --break-system-packages --no-deps androidtvremote2',  # FIXME: Use a venv?
+            '--include=python3-construct python3-packaging',  # Dependencies of python3-snapcast
+            '--customize-hook=chroot $1 python3 -m pip install --break-system-packages --no-deps snapcast',  # FIXME: Use a venv?
+            ]
+           if args.template == 'cec-androidtv-fixes' else []),
          *(['--include=phoc xwayland',  # Let's try Wayland instead of X11  NOTE: jellyfin-media-player has issues with sway, mako-notifier can't work with weston
 
             # copied from wants_GUI section above because while this does want a GUI, it's not an X11 GUI so we can't use that entire section
@@ -513,7 +523,7 @@ with tempfile.TemporaryDirectory() as td:
 
             f'--customize-hook=sed -i "s|{pathlib.Path.cwd()}/jellyfin-media-player|/etc/apt/trusted.gpg.d|" "$1/etc/apt/sources.list.d/0001main.list"',  # Fix apt sources.list for the correct public key location
 
-            f'--essential-hook=tar-in {create_tarball("jellyfin-media-player")} /']
+            f'--essential-hook=tar-in {create_tarball(args.template)} /']
            if args.template == 'jellyfin-media-player' else []),
          *(['--include=openjdk-17-jre-headless rsync',
 
@@ -527,7 +537,7 @@ with tempfile.TemporaryDirectory() as td:
             # NOTE: I've set the user ID because I need it to match the ownership/permissions of the data partition
             '--customize-hook=chroot $1 adduser minecraft --home /srv/mcdata --no-create-home --system --group --uid 420',
             '--hook-dir=minecraft-server.hooks',
-            f'--essential-hook=tar-in {create_tarball("minecraft-server")} /']
+            f'--essential-hook=tar-in {create_tarball(args.template)} /']
            if args.template == 'minecraft-server' else []),
          f'--customize-hook=echo "BOOTSTRAP2020_TEMPLATE={args.template}" >>$1/etc/os-release',
          *([f'--architecture={args.rpi}',
@@ -561,6 +571,7 @@ with tempfile.TemporaryDirectory() as td:
             # FIXME: Somehow implement a/b partitions for some form of auto-updates later?
             #        https://www.raspberrypi.com/documentation/computers/config_txt.html#autoboot-txt
             #        Likely requires using u-boot or similar.
+            f'--essential-hook=tar-in {create_tarball(args.template)} /',
            ] if args.rpi else []),
          'bookworm',
          destdir / 'filesystem.squashfs',
