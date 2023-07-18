@@ -438,6 +438,16 @@ with tempfile.TemporaryDirectory() as td:
             '--customize-hook=chroot $1 python3 -m pip install --break-system-packages --no-deps androidtvremote2',  # FIXME: Use a venv?
             '--include=python3-construct python3-packaging',  # Dependencies of python3-snapcast
             '--customize-hook=chroot $1 python3 -m pip install --break-system-packages --no-deps snapcast',  # FIXME: Use a venv?
+
+            '--include=ir-keytable',  # infrared remote control
+            # cec-utils
+            '--include=v4l-utils',  # Trying to make CEC remote control work
+            '--include=rsync',  # Great for dev & updates
+
+            # Append to the default /etc/rc_maps.cfg
+            # FIXME: Use pathlib or os.path.join.
+            f'--customize-hook=cat "{args.template}/infrared-tv-remote-control/rc_maps.cfg" >>"$1/etc/rc_maps.cfg"',
+            f'--essential-hook=tar-in {create_tarball(args.template)} /',
             ]
            if args.template == 'cec-androidtv-fixes' else []),
          *(['--include=phoc xwayland',  # Let's try Wayland instead of X11  NOTE: jellyfin-media-player has issues with sway, mako-notifier can't work with weston
@@ -571,7 +581,6 @@ with tempfile.TemporaryDirectory() as td:
             # FIXME: Somehow implement a/b partitions for some form of auto-updates later?
             #        https://www.raspberrypi.com/documentation/computers/config_txt.html#autoboot-txt
             #        Likely requires using u-boot or similar.
-            f'--essential-hook=tar-in {create_tarball(args.template)} /',
            ] if args.rpi else []),
          'bookworm',
          destdir / 'filesystem.squashfs',
