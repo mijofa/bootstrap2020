@@ -33,6 +33,10 @@ CEC_LOGGING_LEVELS = {
     # logging.NOTSET
 }
 
+logger = logging.getLogger(__name__ if __name__ != '__main__' else None)
+ch = logging.StreamHandler()
+logger.addHandler(ch)
+
 
 class cec_handler(object):
     """Handle the CEC communication."""
@@ -74,19 +78,21 @@ class cec_handler(object):
 
     def _log_callback(self, level: int, time: int, message: str):
         # This ignores the time argument and just assumes "now".
-        logging.log(level=CEC_LOGGING_LEVELS[level], message=message)
+        logger.log(level=CEC_LOGGING_LEVELS[level], msg=f'CEC({level}): {message}')
 
     def send_command(self, destination: int, opcode: int, parameter: int = None, extra: int = None):
         """Send a CEC command (initiator is automatically filled in)."""
         # This website greatly helped me understand how CEC command strings even work:
         # https://www.cec-o-matic.com/
+        # FIXME: There can be an infinite number of parameters
         # FIXME: Figure out how to use the cec.cec_command() object directly insttead of going via CommandFromString
-        command = self.lib.CommandFromString(':'.join([f'{self.own_address:1x}{destination:1x}',
-                                                       f'{opcode:02x}',
-                                                       *([f'{parameter:02x}'] if parameter is not None else []),
-                                                       *([f'{extra:02x}'] if extra is not None else [])
-                                                       ]))
-        return self.lib.Transmit(command)
+        command_string = ':'.join([f'{self.own_address:1x}{destination:1x}',
+                                   f'{opcode:02x}',
+                                   *([f'{parameter:02x}'] if parameter is not None else []),
+                                   *([f'{extra:02x}'] if extra is not None else [])
+                                   ])
+        logger.log(logging.DEBUG, "Sending command: %s", command_string)
+        return self.lib.Transmit(self.lib.CommandFromString(command_string))
 
 
 class cec_tv(object):
@@ -97,14 +103,56 @@ class cec_tv(object):
         self.parent = parent
         self.device_address = cec.CECDEVICE_TV
 
-    def press_control(self, key_code):
+    def _user_control_exceptions(self, key_code: int):
+        """
+        Handle functions for keys that don't quite work via CEC_USER_CONTROL.
+
+        There are a few of controls that don't work directly with my AndroidTV,
+        but there's other CEC functions that can do the same thing anyway.
+        I don't know whether this is AndroidTV's fault, **my** AndroidTV's fault,
+        or just badly standardised CEC in general.
+        """
+        exceptions = {
+            # FIXME: Haven't figured out power on, so we only support standby/power-off for now
+            #        I'll probably need androidtvremote2 for the power on
+            cec.CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION: lambda: self.parent.lib.StandbyDevices(),
+            # FIXME: I hope this isn't creating a **new** event loop
+            cec.CEC_USER_CONTROL_CODE_CONTENTS_MENU: lambda: asyncio.get_event_loop().create_task(
+                self.hold_control(cec.CEC_USER_CONTROL_CODE_SELECT)),
+        }
+        if key_code in exceptions:
+            exceptions[key_code]()
+            return True
+        else:
+            return False
+
+    def send_command(self, opcode: int, parameter: int = None):
+        """Send a CEC command to this device."""
+        # FIXME: There can be an infinite number of parameters
+        return self.parent.send_command(destination=self.device_address,
+                                        opcode=opcode, parameter=parameter)
+
+    def press_control(self, key_code: int):
         """Send press then release signal to the TV."""
-        retval = self.parent.send_command(destination=self.device_address,
-                                          opcode=cec.CEC_OPCODE_USER_CONTROL_PRESSED,
-                                          parameter=key_code)
-        if retval:
-            return self.parent.send_command(destination=self.device_address,
-                                            opcode=cec.CEC_OPCODE_USER_CONTROL_RELEASE)
+        if self._user_control_exceptions(key_code):
+            return True
+        else:
+            # These return True on success and False on failure,
+            # so wrapping it in min() ensures we'll get False if either one of them fail
+            # FIXME: Does this gaurantee that release will always trigger **after** pressed?
+            return min(self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_PRESSED,
+                                         parameter=key_code),
+                       self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_RELEASE))
+
+    # FIXME: I'm only using this because there's no "context menu" button and holding enter/select works well enough
+    async def hold_control(self, key_code: int):
+        """Send control press, delay half a second, then release to the TV."""
+        if self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_PRESSED,
+                             parameter=key_code):
+            await asyncio.sleep(0.5)
+            return self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_RELEASE)
+        else:
+            return False
 
 
 class evdev_keybinds(object):
@@ -125,23 +173,24 @@ class evdev_keybinds(object):
 
     async def device_loop(self, dev):
         """Handle the given events for the given device."""
-        print('Registering evdev device', dev.name)
+        logger.info('EVDEV: Registering device %s', dev.name)
         try:
             async for event in dev.async_read_loop():
                 if event.type in self.event_map.keys() and \
                         event.code in self.event_map[event.type] and \
                         event.value:
-                    # print("Processing trigger for", evdev.categorize(event))
                     try:
                         self.event_map[event.type][event.code]()
                     except:  # noqa: E722 "do not use bare 'except'"
                         # Report errors, but don't stop the loop for them
-                        print(traceback.format_exc(), file=sys.stderr)
+                        logger.error(traceback.format_exc())
+                elif event.type == evdev.ecodes.EV_KEY and event.value:
+                    logger.debug("EVDEV: Unrecognised key: %s", evdev.categorize(event))
                 # elif event.type != evdev.ecodes.EV_SYN:
                 #     print("Ignoring", evdev.categorize(event))
         except OSError as e:
             if e.errno == 19:
-                print("Looks like device was removed, stopping device loop")
+                logger.info("EVDEV: Looks like device was removed, stopping device loop")
             else:
                 raise
 
@@ -191,7 +240,6 @@ class stdin_keybinds(object):
 
     async def _device_loop(self):
         """Handle the stdin."""
-        print("Registering stdin")
         key_queue = asyncio.Queue()
         loop = asyncio.get_event_loop()
         loop.add_reader(sys.stdin,
@@ -202,12 +250,19 @@ class stdin_keybinds(object):
                             # that's probably a good thing though.
                             sys.stdin.read(len(sys.stdin.buffer.peek())))))
 
+        logger.info("STDIN: Ready")
         while True:
             key = await key_queue.get()
-            if key in self.event_map:
-                self.event_map[key]()
+            if key == '\x04':  # EOF/Ctrl-D
+                return
+            elif key in self.event_map:
+                try:
+                    self.event_map[key]()
+                except:  # noqa: E722 "do not use bare 'except'"
+                    # Report errors, but don't stop the loop for them
+                    logger.error(traceback.format_exc())
             else:
-                print("Unrecognised key:", repr(key))
+                logger.warning("STDIN: Unrecognised key: %s", repr(key))
 
     async def main_loop(self):
         """Reconfigure the terminal and run the device loop."""
@@ -220,29 +275,88 @@ class stdin_keybinds(object):
             termios.tcsetattr(stdin_fd, termios.TCSADRAIN, temp_settings)
             await self._device_loop()
         finally:
-            print("Restoring terminal config")
+            logger.debug("STDIN: Restoring terminal config")
             termios.tcsetattr(stdin_fd, termios.TCSADRAIN, stdin_settings)
 
+        # If the stdin loop stopped, we should stop all the whole program
+        asyncio.get_event_loop().stop()
 
-EVDEV_EVENT_MAPPING = {
-    evdev.ecodes.EV_KEY: {
-        evdev.ecodes.KEY_INFO: lambda: print("evdev, info pressed"),
-    },
-}
-EVDEV_CEC_MAPPING = {
-    evdev.ecodes.KEY_INFO: 'abc'
-}
-STDIN_CEC_MAPPING = {
-    '\x1b[A': cec.CEC_USER_CONTROL_CODE_UP,
-    '\x1b[B': cec.CEC_USER_CONTROL_CODE_DOWN,
-    '\x1b[C': cec.CEC_USER_CONTROL_CODE_RIGHT,
-    '\x1b[D': cec.CEC_USER_CONTROL_CODE_LEFT,
-    '\x1b': cec.CEC_USER_CONTROL_CODE_EXIT,
-    '\n': cec.CEC_USER_CONTROL_CODE_ENTER,
-}
+
+class keybindings_table(object):
+    """
+    Maps events from evdev & stdin to CEC & androidtvremote (and snapcast in future?).
+
+    Done as a separate class just because it's easier to define the mappings when the other class objects are already defined.
+    """
+
+    def __init__(self, loop: asyncio.BaseEventLoop, TV: cec_tv):
+        """Initialise required callable objects."""
+        self.loop = loop
+        self.TV = TV
+
+    def evdev_mapping(self):
+        """Return the key -> function mapping for evdev events."""
+        return {evdev.ecodes.EV_KEY: {
+            # FIXME: Why doen't 'cec.CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION' do anything?
+            evdev.ecodes.KEY_REWIND: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_REWIND),
+            evdev.ecodes.KEY_PLAYPAUSE: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_PLAY),
+            evdev.ecodes.KEY_FASTFORWARD: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_FAST_FORWARD),
+            evdev.ecodes.KEY_PREVIOUSSONG: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_BACKWARD),
+            evdev.ecodes.KEY_STOPCD: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_PAUSE),
+            evdev.ecodes.KEY_NEXTSONG: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_FORWARD),
+
+            evdev.ecodes.KEY_MUTE: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_MUTE),
+            evdev.ecodes.KEY_VOLUMEUP: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_VOLUME_UP),
+            evdev.ecodes.KEY_VOLUMEDOWN: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_VOLUME_DOWN),
+
+            # FIXME: "POWER" is not currently supported, and "POWER_OFF_FUNCTION" is implemented hacky as hell
+            evdev.ecodes.KEY_CLOSE: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_POWER),
+            evdev.ecodes.KEY_SLEEP: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION),
+
+            # evdev.ecodes.KEY_HOMEPAGE: HOME
+        }}
+
+    def stdin_mapping(self):
+        """Return the key -> function mapping for stdin events."""
+        return {
+            '\x1b[A': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_UP),
+            '\x1b[B': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_DOWN),
+            '\x1b[C': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_RIGHT),
+            '\x1b[D': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_LEFT),
+            '\x1b': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_EXIT),
+            '\n': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_SELECT),
+            # ' ': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION),
+            'p': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_PAUSE),
+            'P': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_PLAY),
+            'S': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_STOP),
+
+            # Opens settings, same as the native remotes gear button
+            '~': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_SETUP_MENU),
+            # Opens the input selector (HDMI/AV/Tuner/etc)
+            'I': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_INPUT_SELECT),
+            # Makes Jellyfin show the current time & media name, not progress
+            'i': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_DISPLAY_INFORMATION),
+
+            # This one's an async function because I have an explicit sleep, can I make all of them async functions?
+            # I'm using this for "context menu" which is actually done by holding down select
+            'm': lambda: self.loop.create_task(self.TV.hold_control(cec.CEC_USER_CONTROL_CODE_SELECT)),
+            # CEC-o-matic says "reserved", ir-keytable says KEY_WWW. TV says "feature abort"
+            # 'x': lambda: self.TV.press_control(0x59),
+
+            # '\x1b[H': HOME
+        }
+
 
 if __name__ == '__main__':
+    # FIXME: Use proper argument handling
+    if sys.argv[-1] == '--debug':
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+
     loop = asyncio.get_event_loop()
-    loop.create_task(evdev_keybinds(event_map=EVDEV_EVENT_MAPPING).main_loop())
-    loop.create_task(stdin_keybinds(event_map={k: lambda code=v: print(code) for k, v in STDIN_CEC_MAPPING.items()}).main_loop())
+    cec_hub = cec_handler()
+    glue = keybindings_table(loop=loop, TV=cec_hub.TV)
+    loop.create_task(evdev_keybinds(event_map=glue.evdev_mapping()).main_loop())
+    loop.create_task(stdin_keybinds(event_map=glue.stdin_mapping()).main_loop())
     loop.run_forever()
