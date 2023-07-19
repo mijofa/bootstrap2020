@@ -444,6 +444,8 @@ with tempfile.TemporaryDirectory() as td:
             '--include=v4l-utils',  # Trying to make CEC remote control work
             '--include=rsync',  # Great for dev & updates
 
+            '--include=python3-evdev python3-pyudev',  # needed for the Python global keybindings handler
+
             # Append to the default /etc/rc_maps.cfg
             # FIXME: Use pathlib or os.path.join.
             f'--customize-hook=cat "{args.template}/infrared-tv-remote-control/rc_maps.cfg" >>"$1/etc/rc_maps.cfg"',
