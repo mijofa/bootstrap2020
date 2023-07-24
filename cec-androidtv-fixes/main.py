@@ -37,7 +37,7 @@ CEC_LOGGING_LEVELS = {
 logger = logging.getLogger(__name__ if __name__ != '__main__' else None)
 stderr_handler = logging.StreamHandler()
 logger.addHandler(stderr_handler)
-journal_handler = systemd.journal.JournalHandler()
+journal_handler = systemd.journal.JournalHandler(SYSLOG_IDENTIFIER='cec-handler')
 logger.addHandler(journal_handler)
 
 
@@ -88,13 +88,13 @@ class cec_handler(object):
         # This website greatly helped me understand how CEC command strings even work:
         # https://www.cec-o-matic.com/
         # FIXME: There can be an infinite number of parameters
-        # FIXME: Figure out how to use the cec.cec_command() object directly insttead of going via CommandFromString
+        # FIXME: Figure out how to use the cec.cec_command() object directly instead of going via CommandFromString
         command_string = ':'.join([f'{self.own_address:1x}{destination:1x}',
                                    f'{opcode:02x}',
                                    *([f'{parameter:02x}'] if parameter is not None else []),
                                    *([f'{extra:02x}'] if extra is not None else [])
                                    ])
-        logger.log(logging.DEBUG, "Sending command: %s", command_string)
+        logger.log(logging.INFO, "CEC: Sending command: %s", command_string)
         return self.lib.Transmit(self.lib.CommandFromString(command_string))
 
 
@@ -163,12 +163,14 @@ class evdev_keybinds(object):
         async for udev_dev in self.iter_monitor_devices(self.udev_context, subsystem='input'):
             if udev_dev.device_node and udev_dev.device_node in evdev.list_devices():
                 evdev_dev = evdev.InputDevice(udev_dev.device_node)
-                if self._is_device_capable(evdev_dev.capabilities()):
+                # 'vc4-hdmi/input0' is the name of the CEC input device I got on my rPi.
+                # This exception is included just to avoid getting stuck in an infinite loop.
+                if evdev_dev.phys != 'vc4-hdmi/input0' and self._is_device_capable(evdev_dev.capabilities()):
                     asyncio.ensure_future(self.device_loop(evdev_dev))
 
     async def device_loop(self, dev):
         """Handle the given events for the given device."""
-        logger.info('EVDEV: Registering device %s', dev.name)
+        logger.info('EVDEV: Registering %s', dev)
         loop = asyncio.get_event_loop()
         try:
             async for event in dev.async_read_loop():
@@ -176,6 +178,7 @@ class evdev_keybinds(object):
                         event.code in self.event_map[event.type] and \
                         event.value:
                     try:
+                        logger.info("EVDEV: Triggered %s", evdev.categorize(event))
                         loop.create_task(self.event_map[event.type][event.code]())
                     except:  # noqa: E722 "do not use bare 'except'"
                         # Report errors, but don't stop the loop for them
@@ -254,6 +257,7 @@ class stdin_keybinds(object):
                 return
             elif key in self.event_map:
                 try:
+                    logger.info("STDIN: Triggered %s", repr(key))
                     loop.create_task(self.event_map[key]())
                 except:  # noqa: E722 "do not use bare 'except'"
                     # Report errors, but don't stop the loop for them
@@ -353,14 +357,24 @@ class keybindings_table(object):
 
 if __name__ == '__main__':
     # FIXME: Use proper argument handling
-    if sys.argv[-1] == '--debug':
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
+    import argparse
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument('--stdin', help="Accept input from stdin (for cmdline debugging)",
+                        action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--evdev', help="Accept input from evdev (for ir-keytable)",
+                        action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument('--debug', help="Increase logging verbosity",
+                        action='store_const', dest='loglevel', default=logging.INFO, const=logging.DEBUG)
+
+    args = parser.parse_args()
+    print(args)
+    logger.setLevel(args.loglevel)
 
     loop = asyncio.get_event_loop()
     cec_hub = cec_handler()
     glue = keybindings_table(loop=loop, TV=cec_hub.TV)
-    loop.create_task(evdev_keybinds(event_map=glue.evdev_mapping()).main_loop())
-    loop.create_task(stdin_keybinds(event_map=glue.stdin_mapping()).main_loop())
+    if args.evdev:
+        loop.create_task(evdev_keybinds(event_map=glue.evdev_mapping()).main_loop())
+    if args.stdin:
+        loop.create_task(stdin_keybinds(event_map=glue.stdin_mapping()).main_loop())
     loop.run_forever()
