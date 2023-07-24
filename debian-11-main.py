@@ -440,8 +440,8 @@ with tempfile.TemporaryDirectory() as td:
             '--customize-hook=chroot $1 python3 -m pip install --break-system-packages --no-deps snapcast',  # FIXME: Use a venv?
 
             '--include=ir-keytable',  # infrared remote control
-            # cec-utils
-            '--include=v4l-utils',  # Trying to make CEC remote control work
+            '--include=cec-utils',  # Useful for investigating the CEC protocol, not actually sued
+            '--include=v4l-utils',  # Needed for the ir-keytable RC passthrough
 
             '--include=python3-systemd',  # Let logging.py use the Journal
 

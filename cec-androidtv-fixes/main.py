@@ -135,27 +135,19 @@ class cec_tv(object):
         return self.parent.send_command(destination=self.device_address,
                                         opcode=opcode, parameter=parameter)
 
-    def press_control(self, key_code: int):
-        """Send press then release signal to the TV."""
+    async def press_control(self, key_code: int, hold: bool = False):
+        """Send press & release signal to the TV."""
         if self._user_control_exceptions(key_code):
             return True
         else:
+            press_retval = self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_PRESSED,
+                                             parameter=key_code)
+            if hold:
+                # FIXME: I'm only using this because there's no "context menu" button and holding enter/select works well enough
+                await asyncio.sleep(0.5)
             # These return True on success and False on failure,
             # so wrapping it in min() ensures we'll get False if either one of them fail
-            # FIXME: Does this gaurantee that release will always trigger **after** pressed?
-            return min(self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_PRESSED,
-                                         parameter=key_code),
-                       self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_RELEASE))
-
-    # FIXME: I'm only using this because there's no "context menu" button and holding enter/select works well enough
-    async def hold_control(self, key_code: int):
-        """Send control press, delay half a second, then release to the TV."""
-        if self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_PRESSED,
-                             parameter=key_code):
-            await asyncio.sleep(0.5)
-            return self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_RELEASE)
-        else:
-            return False
+            return min(press_retval, self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_RELEASE))
 
 
 class evdev_keybinds(object):
@@ -177,13 +169,14 @@ class evdev_keybinds(object):
     async def device_loop(self, dev):
         """Handle the given events for the given device."""
         logger.info('EVDEV: Registering device %s', dev.name)
+        loop = asyncio.get_event_loop()
         try:
             async for event in dev.async_read_loop():
                 if event.type in self.event_map.keys() and \
                         event.code in self.event_map[event.type] and \
                         event.value:
                     try:
-                        self.event_map[event.type][event.code]()
+                        loop.create_task(self.event_map[event.type][event.code]())
                     except:  # noqa: E722 "do not use bare 'except'"
                         # Report errors, but don't stop the loop for them
                         logger.error(traceback.format_exc())
@@ -257,10 +250,11 @@ class stdin_keybinds(object):
         while True:
             key = await key_queue.get()
             if key == '\x04':  # EOF/Ctrl-D
+                logger.info("STDIN: EOF received, cleaning up")
                 return
             elif key in self.event_map:
                 try:
-                    self.event_map[key]()
+                    loop.create_task(self.event_map[key]())
                 except:  # noqa: E722 "do not use bare 'except'"
                     # Report errors, but don't stop the loop for them
                     logger.error(traceback.format_exc())
@@ -269,6 +263,7 @@ class stdin_keybinds(object):
 
     async def main_loop(self):
         """Reconfigure the terminal and run the device loop."""
+        # NOTE: Not really a loop itself, but runs the _device_loop function
         stdin_fd = sys.stdin.fileno()
         stdin_settings = termios.tcgetattr(stdin_fd)
         try:
@@ -299,6 +294,12 @@ class keybindings_table(object):
 
     def evdev_mapping(self):
         """Return the key -> function mapping for evdev events."""
+        # FIXME: Could we automatically generate this from "/usr/lib/udev/rc_keymaps/cec.toml"?
+        #        with pathlib.Path('/usr/lib/udev/rc_keymaps/cec.toml').open('rb') as f:
+        #            c = tomllib.load(f)
+        #        # FIXME: Do some sanity checking on the results of find_ecodes_by_regex()
+        #        keycodes_to_cec = {evdev.util.find_ecodes_by_regex(f'^{v}$')[evdev.ecodes.EV_KEY][0]: int(k, 16)
+        #                           for k, v in c['protocols'][0]['scancodes'].items()}
         return {evdev.ecodes.EV_KEY: {
             # FIXME: Why doen't 'cec.CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION' do anything?
             evdev.ecodes.KEY_REWIND: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_REWIND),
@@ -342,7 +343,7 @@ class keybindings_table(object):
 
             # This one's an async function because I have an explicit sleep, can I make all of them async functions?
             # I'm using this for "context menu" which is actually done by holding down select
-            'm': lambda: self.loop.create_task(self.TV.hold_control(cec.CEC_USER_CONTROL_CODE_SELECT)),
+            'm': lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_SELECT, hold=True),
             # CEC-o-matic says "reserved", ir-keytable says KEY_WWW. TV says "feature abort"
             # 'x': lambda: self.TV.press_control(0x59),
 
