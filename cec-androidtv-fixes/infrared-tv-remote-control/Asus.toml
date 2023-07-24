@@ -1,1 +1,73 @@
-../../jellyfin-media-player/infrared-tv-remote-control/Asus.toml
+[[protocols]]
+name = "Asus"
+protocol = "rc-6"
+#variant = "FIXME"
+
+# Something is weird with this remote as it seems to alternate every single scancode
+# At least there's only 1 character that changes.
+# They alternate between starting with '0x80263' & '0x8026b'
+# There's probably a "variant" that would fix this, but I don't even know what variants exist let alone which one this is
+[protocols.scancodes]
+# Using KEY_CLOSE instead of KEY_POWER because I don't want it intercepted by systemd/dbus
+0x80263d0c = "KEY_CLOSE"  # KEY_POWER?
+0x8026bd0c = "KEY_CLOSE"  # KEY_POWER?
+0x80263d0d = "KEY_MUTE"
+0x8026bd0d = "KEY_MUTE"
+0x80263d29 = "KEY_REWIND"
+0x8026bd29 = "KEY_REWIND"
+# FIXME: I want this to be PLAYPAUSE, but AndroidTV (or maybe Jellyfin-androidtv?) doesn't support that
+0x80263d93 = "KEY_PLAY"
+0x8026bd93 = "KEY_PLAY"
+0x80263d28 = "KEY_FASTFORWARD"
+0x8026bd28 = "KEY_FASTFORWARD"
+0x80263d21 = "KEY_BACKWARD"
+0x8026bd21 = "KEY_BACKWARD"
+# FIXME: This should be STOP, but I repurposed it due to lack of PLAYPAUSE support
+0x80263d31 = "KEY_PAUSE"
+0x8026bd31 = "KEY_PAUSE"
+0x80263d20 = "KEY_FORWARD"
+0x8026bd20 = "KEY_FORWARD"
+0x80263d10 = "KEY_VOLUMEUP"
+0x8026bd10 = "KEY_VOLUMEUP"
+0x80263d58 = "KEY_UP"
+0x8026bd58 = "KEY_UP"
+0x80263d11 = "KEY_VOLUMEDOWN"
+0x8026bd11 = "KEY_VOLUMEDOWN"
+0x80263d5a = "KEY_LEFT"
+0x8026bd5a = "KEY_LEFT"
+0x80263d5c = "KEY_ENTER"
+0x8026bd5c = "KEY_ENTER"
+0x80263d5b = "KEY_RIGHT"
+0x8026bd5b = "KEY_RIGHT"
+# KEY_ROOT_MENU? KEY_MEDIA_TOP_MENU?
+0x80263dae = "KEY_CONTEXT_MENU"
+0x8026bdae = "KEY_CONTEXT_MENU"
+0x80263d59 = "KEY_DOWN"
+0x8026bd59 = "KEY_DOWN"
+0x80263d83 = "KEY_EXIT"
+0x8026bd83 = "KEY_EXIT"
+#0x80263dab = "KEY_SWITCHVIDEOMODE"  # cycle windows?
+#0x8026bdab = "KEY_SWITCHVIDEOMODE"  # cycle windows?
+0x80263dab = "KEY_INFO"
+0x8026bdab = "KEY_INFO"
+#0x80263d54 = "KEY_DASHBOARD"
+#0x8026bd54 = "KEY_DASHBOARD"
+0x80263d54 = "KEY_SETUP"
+0x8026bd54 = "KEY_SETUP"
+0x80263df7 = "KEY_MENU"  # fullscreen
+0x8026bdf7 = "KEY_MENU"  # fullscreen
+# The CHANNEL buttons here don't really match the icons on the buttons, but there was no channel up/down buttons here,
+# and remapping them here is much simpler and more obviously communicates the intent than binding both buttons does.
+# This is what I would map them to otherwise:
+# # 0x80263db1 = "KEY_MEDIA"  # radio icon
+# # 0x8026bdb1 = "KEY_MEDIA"  # radio icon
+# # 0x80263daf = "KEY_SOUND"  # music symbol
+# # 0x8026bdaf = "KEY_SOUND"  # music symbol
+0x80263db1 = "KEY_CHANNELUP"  # radio icon
+0x8026bdb1 = "KEY_CHANNELUP"  # radio icon
+0x80263daf = "KEY_CHANNELDOWN"  # music symbol
+0x8026bdaf = "KEY_CHANNELDOWN"  # music symbol
+0x80263dad = "KEY_AUDIODESC"  # DTS
+0x8026bdad = "KEY_AUDIODESC"  # DTS
+0x80263dac = "KEY_SLEEP"  # moon
+0x8026bdac = "KEY_SLEEP"  # moon
