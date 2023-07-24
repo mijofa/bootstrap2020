@@ -16,6 +16,7 @@ import typing
 import cec
 import evdev
 import pyudev
+import systemd.journal
 
 
 # Map the CEC log levels to the logging module's log levels
@@ -34,8 +35,10 @@ CEC_LOGGING_LEVELS = {
 }
 
 logger = logging.getLogger(__name__ if __name__ != '__main__' else None)
-ch = logging.StreamHandler()
-logger.addHandler(ch)
+stderr_handler = logging.StreamHandler()
+logger.addHandler(stderr_handler)
+journal_handler = systemd.journal.JournalHandler()
+logger.addHandler(journal_handler)
 
 
 class cec_handler(object):

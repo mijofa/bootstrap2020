@@ -442,6 +442,9 @@ with tempfile.TemporaryDirectory() as td:
             '--include=ir-keytable',  # infrared remote control
             # cec-utils
             '--include=v4l-utils',  # Trying to make CEC remote control work
+
+            '--include=python3-systemd',  # Let logging.py use the Journal
+
             '--include=rsync',  # Great for dev & updates
 
             '--include=python3-evdev python3-pyudev',  # needed for the Python global keybindings handler
