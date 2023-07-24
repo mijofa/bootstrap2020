@@ -430,8 +430,8 @@ with tempfile.TemporaryDirectory() as td:
            if args.reproducible else []),
          *(['--include=wpasupplicant firmware-realtek firmware-iwlwifi']
            if template_wants_WiFi else []),
-         *(['--include=python3-cec',  # Needed to control the HDMI amplifier
-            '--include=python3-pip',  # Needed because python3-androidtvremote2 is not packaged for Debian
+         *(['--include=python3-cec',  # Needed to control the HDMI devices
+            '--include=python3-pip',  # Needed because python3-androidtvremote2 & python3-snapcast are not packaged for Debian
             '--include=python3-aiofiles python3-cryptography python3-protobuf',  # Dependencies of python3-androidtvremote2
             # NOTE: We could use pip from the host system with `--root=$1` but that adds more dependencies in the host,
             #       and likely to cause version mismatch between the OS and the Python library
@@ -443,11 +443,12 @@ with tempfile.TemporaryDirectory() as td:
             '--include=cec-utils',  # Useful for investigating the CEC protocol, not actually sued
             '--include=v4l-utils',  # Needed for the ir-keytable RC passthrough
 
+            '--include=python3-evdev python3-pyudev',  # needed for the Python global keybindings handler
             '--include=python3-systemd',  # Let logging.py use the Journal
 
-            '--include=rsync',  # Great for dev & updates
+            '--include=snapclient',
 
-            '--include=python3-evdev python3-pyudev',  # needed for the Python global keybindings handler
+            '--include=rsync',  # Great for dev & updates
 
             # Append to the default /etc/rc_maps.cfg
             # FIXME: Use pathlib or os.path.join.
