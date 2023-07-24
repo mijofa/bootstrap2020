@@ -7,9 +7,11 @@ Secondary purpose is to keep the amplifier unmuted for background music when the
 """
 import asyncio
 import logging
+import pathlib
 import socket
 import sys
 import termios
+import tomllib
 import traceback
 import typing
 
@@ -77,7 +79,7 @@ class cec_handler(object):
 
         device_addresses = self.lib.GetActiveDevices()
         device_addresses.IsSet(cec.CECDEVICE_TV), "No TV connected, can we even do anything useful?"
-        self.TV = cec_tv(self)
+        self.TV = cec_device(parent=self, device_address=cec.CECDEVICE_TV)
 
     def _log_callback(self, level: int, time: int, message: str):
         # This ignores the time argument and just assumes "now".
@@ -98,15 +100,15 @@ class cec_handler(object):
         return self.lib.Transmit(self.lib.CommandFromString(command_string))
 
 
-class cec_tv(object):
-    """Represents a TV device, used by the CEC handler."""
+class cec_device(object):
+    """Represents a CEC device, used by the CEC handler."""
 
-    def __init__(self, parent: cec_handler):
+    def __init__(self, parent: cec_handler, device_address: int):
         """Initialise the TV over CEC."""
         self.parent = parent
-        self.device_address = cec.CECDEVICE_TV
+        self.device_address = device_address
 
-    def _user_control_exceptions(self, key_code: int):
+    async def _user_control_exceptions(self, key_code: int):
         """
         Handle functions for keys that don't quite work via CEC_USER_CONTROL.
 
@@ -116,18 +118,50 @@ class cec_tv(object):
         or just badly standardised CEC in general.
         """
         exceptions = {
-            # FIXME: Haven't figured out power on, so we only support standby/power-off for now
-            #        I'll probably need androidtvremote2 for the power on
-            cec.CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION: lambda: self.parent.lib.StandbyDevices(),
-            # FIXME: I hope this isn't creating a **new** event loop
-            cec.CEC_USER_CONTROL_CODE_CONTENTS_MENU: lambda: asyncio.get_event_loop().create_task(
-                self.hold_control(cec.CEC_USER_CONTROL_CODE_SELECT)),
+            # Surprisingly, the power button signal works for power on, but not power off,
+            # and there's no toggle option.
+            # That's ok though, we can make that work ourselves.
+            # FIXME: These are rather specific to the TV, so don't really belong in this generic cec_device object class
+            cec.CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION: lambda: self.send_command(opcode=cec.CEC_OPCODE_STANDBY),
+            cec.CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION: lambda: self.press_control(key_code=cec.CEC_USER_CONTROL_CODE_POWER),
+            cec.CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION: self._power_toggle_function,
+
+            # FIXME: Jellyfin doesn't seem to work with cec.CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION
+            #        Is that Jellyfin's fault or AndroidTV's?
+
+            cec.CEC_USER_CONTROL_CODE_CONTENTS_MENU: lambda: self.press_control(cec.CEC_USER_CONTROL_CODE_SELECT, hold=True),
         }
         if key_code in exceptions:
-            exceptions[key_code]()
+            await exceptions[key_code]()
             return True
         else:
             return False
+
+    # FIXME: These are rather specific to the TV, so don't really belong in this generic cec_device object class
+    async def _power_toggle_function(self):
+        """
+        Toggle the TV power state.
+
+        Surprisingly, the power button signal works for power on, but not power off, and the toggle function is not supported.
+        But the standby command does work, and we can check the state ourselves.
+        So realistically we can do all this ourselves.
+        """
+        if self.is_on:
+            return self.send_command(opcode=cec.CEC_OPCODE_STANDBY)
+        else:
+            return await self.press_control(key_code=cec.CEC_USER_CONTROL_CODE_POWER)
+
+    # FIXME: This could be updated whenever the TV reports state changes rather than queried every time.
+    @property
+    def is_on(self) -> bool:
+        """
+        Check whether the device is on.
+
+        Returns True for on and False for standby or unknown.
+        """
+        power_status = cec_hub.lib.GetDevicePowerStatus(self.device_address)
+        logging.debug('CEC: Device %s power status: %s', self.device_address, cec_hub.lib.PowerStatusToString(power_status))
+        return (power_status in (cec.CEC_POWER_STATUS_ON, cec.CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON))
 
     def send_command(self, opcode: int, parameter: int = None):
         """Send a CEC command to this device."""
@@ -137,7 +171,8 @@ class cec_tv(object):
 
     async def press_control(self, key_code: int, hold: bool = False):
         """Send press & release signal to the TV."""
-        if self._user_control_exceptions(key_code):
+        # FIXME: Replace this with cec_hub.lib.SendKeyRelease & cec_hub.lib.SendKeyRelease
+        if await self._user_control_exceptions(key_code):
             return True
         else:
             press_retval = self.send_command(opcode=cec.CEC_OPCODE_USER_CONTROL_PRESSED,
@@ -291,38 +326,41 @@ class keybindings_table(object):
     Done as a separate class just because it's easier to define the mappings when the other class objects are already defined.
     """
 
-    def __init__(self, loop: asyncio.BaseEventLoop, TV: cec_tv):
+    def __init__(self, loop: asyncio.BaseEventLoop, TV: cec_device):
         """Initialise required callable objects."""
         self.loop = loop
         self.TV = TV
 
     def evdev_mapping(self):
-        """Return the key -> function mapping for evdev events."""
-        # FIXME: Could we automatically generate this from "/usr/lib/udev/rc_keymaps/cec.toml"?
-        #        with pathlib.Path('/usr/lib/udev/rc_keymaps/cec.toml').open('rb') as f:
-        #            c = tomllib.load(f)
-        #        # FIXME: Do some sanity checking on the results of find_ecodes_by_regex()
-        #        keycodes_to_cec = {evdev.util.find_ecodes_by_regex(f'^{v}$')[evdev.ecodes.EV_KEY][0]: int(k, 16)
-        #                           for k, v in c['protocols'][0]['scancodes'].items()}
-        return {evdev.ecodes.EV_KEY: {
-            # FIXME: Why doen't 'cec.CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION' do anything?
-            evdev.ecodes.KEY_REWIND: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_REWIND),
-            evdev.ecodes.KEY_PLAYPAUSE: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_PLAY),
-            evdev.ecodes.KEY_FASTFORWARD: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_FAST_FORWARD),
-            evdev.ecodes.KEY_PREVIOUSSONG: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_BACKWARD),
-            evdev.ecodes.KEY_STOPCD: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_PAUSE),
-            evdev.ecodes.KEY_NEXTSONG: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_FORWARD),
+        """
+        Return the key -> function mapping for evdev events.
 
-            evdev.ecodes.KEY_MUTE: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_MUTE),
-            evdev.ecodes.KEY_VOLUMEUP: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_VOLUME_UP),
-            evdev.ecodes.KEY_VOLUMEDOWN: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_VOLUME_DOWN),
+        This mapping is automatically generated from /usr/lib/udev/rc_keymaps/cec.toml
+        So refer to that for configuring the IR remote toml file.
 
-            # FIXME: "POWER" is not currently supported, and "POWER_OFF_FUNCTION" is implemented hacky as hell
-            evdev.ecodes.KEY_CLOSE: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_POWER),
-            evdev.ecodes.KEY_SLEEP: lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION),
+        FIXME: Can we add a list of exceptions for keys that are handled via stdin.
+               Currently I've just disabled stdin by default
+        """
+        with pathlib.Path('/usr/lib/udev/rc_keymaps/cec.toml').open('rb') as f:
+            cec_irkeytable = tomllib.load(f)
 
-            # evdev.ecodes.KEY_HOMEPAGE: HOME
-        }}
+        mapping = {}
+        for scancode, keycode in cec_irkeytable['protocols'][0]['scancodes'].items():
+            ecode, = evdev.util.find_ecodes_by_regex(f'^{keycode}$')[evdev.ecodes.EV_KEY]
+            mapping[ecode] = lambda sc=scancode: self.TV.press_control(int(sc, 16))
+
+        # Mapping IR remote to KEY_POWER can cause systemd/dbus to trigger shutdown directly,
+        # so we use KEY_CLOSE instead, but that's not even mapped in cec.toml, so let's just map that directly.
+        if evdev.ecodes.KEY_CLOSE not in mapping:
+            mapping[evdev.ecodes.KEY_CLOSE] = lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION)
+        # CEC does have a DISPLAY_INFO user control, but cec.toml doesn't map it
+        if evdev.ecodes.KEY_INFO not in mapping:
+            mapping[evdev.ecodes.KEY_INFO] = lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_DISPLAY_INFORMATION)
+        # CEC has no context-menu/hold/right-click equivalent, so I've made my own
+        if evdev.ecodes.KEY_MENU not in mapping:
+            mapping[evdev.ecodes.KEY_MENU] = lambda: self.TV.press_control(cec.CEC_USER_CONTROL_CODE_SELECT, hold=True)
+
+        return {evdev.ecodes.EV_KEY: mapping}
 
     def stdin_mapping(self):
         """Return the key -> function mapping for stdin events."""
